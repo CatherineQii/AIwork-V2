@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会 AI，还不是硬门槛 —— AI 正在如何改写招聘的筛选方式</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F1EA; --paper2:#EAE6DD; --paper3:#F7F5F0;
+  --ink:#1A1A18; --ink2:#3F3C36; --ink3:#6B6862; --ink4:#8C8478;
+  --rule:#DAD4C8; --rule2:#E6E1D6;
+  --accent:#B23A2B; --accent2:#C9735C; --accent3:#D9A79A;
+  --sand:#B08A50; --sand2:#C09E6C; --sand3:#CFB48C; --sand4:#DCC9A8;
+  --c-bj:#33414C; --c-sh:#6A8AA6; --c-sz:#B23A2B; --c-hz:#4C7C68; --c-gz:#C09244;
+  --serif:"Source Han Serif SC","Noto Serif SC","Songti SC","STSong","SimSun",Georgia,serif;
+  --sans:"Source Han Sans SC","Noto Sans SC","PingFang SC","Microsoft YaHei","Hiragino Sans GB",-apple-system,BlinkMacSystemFont,sans-serif;
+  --num:"Barlow Condensed","Oswald","Roboto Condensed","Arial Narrow","Helvetica Neue",var(--sans);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-weight:400;
+  font-size:17px;line-height:1.95;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  background-image:radial-gradient(rgba(26,26,24,.022) 1px, transparent 1px);
+  background-size:3px 3px;
+}
+::selection{background:var(--accent);color:var(--paper)}
+.nowrap{white-space:nowrap}
+
+/* ---------- 进度条 ---------- */
+#prog{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:120;transition:width .12s linear}
+
+/* ---------- 顶栏 ---------- */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(244,241,234,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+.topbar .in{max-width:1264px;margin:0 auto;padding:0 48px;height:62px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:500;letter-spacing:.02em}
+.brand i{width:7px;height:7px;background:var(--accent);display:block}
+.meta{font-family:var(--num);font-size:12px;letter-spacing:.16em;color:var(--ink4);text-transform:uppercase}
+.meta .d{display:none}
+@media(min-width:820px){.meta .d{display:inline}}
+
+/* ---------- 布局 ---------- */
+.wrap{max-width:1264px;margin:0 auto;padding:0 48px}
+.col{max-width:760px}
+.lede{font-size:19px;line-height:1.9;color:var(--ink2);max-width:730px}
+p{margin:0 0 1.15em}
+a{color:inherit}
+
+/* ---------- 揭示动画 ---------- */
+.r{opacity:0;transform:translateY(16px);transition:opacity .68s cubic-bezier(.22,.61,.25,1),transform .68s cubic-bezier(.22,.61,.25,1)}
+.r.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.r{opacity:1;transform:none;transition:none}}
+
+/* ---------- 首屏 ---------- */
+.hero{padding:88px 0 0}
+.kick{display:flex;align-items:center;gap:12px;font-family:var(--num);font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--accent);text-transform:uppercase}
+.kick i{display:block;width:32px;height:2px;background:var(--accent);flex:none}
+h1{
+  margin:44px 0 0;font-family:var(--serif);font-weight:700;
+  font-size:clamp(44px,6.6vw,88px);line-height:1.18;letter-spacing:-.01em;color:var(--ink);
+}
+h1 .sm{display:block;font-size:clamp(20px,2.4vw,32px);font-weight:400;color:var(--ink3);line-height:1.5;margin-top:.5em;letter-spacing:0}
+.lede{margin:44px 0 0}
+.pull{display:flex;gap:20px;margin:40px 0 0;max-width:720px}
+.pull i{display:block;width:2px;background:var(--accent);flex:none}
+.pull p{margin:0;font-family:var(--serif);font-weight:500;font-size:clamp(19px,2vw,24px);line-height:1.62;color:var(--ink)}
+
+.stat-block{margin:76px 0 0;border-top:2px solid var(--ink);padding-top:40px;display:grid;grid-template-columns:540px 1fr;gap:0}
+.stat-big .n{font-family:var(--num);font-weight:700;font-size:clamp(96px,15vw,180px);line-height:.86;letter-spacing:-.03em;color:var(--accent);display:block}
+.stat-big .c{font-size:15px;line-height:1.65;color:var(--ink3);max-width:340px;margin-top:22px;display:block}
+.stat-list{border-left:1px solid var(--rule);padding-left:56px}
+.srow{display:flex;gap:24px;align-items:baseline;padding:17px 0;border-bottom:1px solid var(--rule)}
+.srow:first-child{padding-top:0}
+.srow:last-child{border-bottom:none;padding-bottom:0}
+.srow .n{font-family:var(--num);font-weight:600;font-size:46px;line-height:1;color:var(--ink);width:150px;flex:none;letter-spacing:-.01em}
+.srow .n.cn{font-family:var(--sans);font-weight:500;font-size:34px}
+.srow .t{font-size:15px;line-height:1.75;color:var(--ink2)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:64px 0 0;flex-wrap:wrap}
+.foot .src{font-size:12px;line-height:1.9;color:var(--ink4);max-width:760px}
+.foot .sc{font-family:var(--num);font-size:11px;letter-spacing:.18em;color:var(--ink4);text-transform:uppercase}
+@media(max-width:860px){
+  .stat-block{grid-template-columns:1fr;gap:34px}
+  .stat-list{border-left:none;padding-left:0;border-top:1px solid var(--rule);padding-top:26px}
+  .srow .n{width:110px;font-size:38px}
+  .srow .n.cn{font-size:28px}
+}
+
+/* ---------- 章节 ---------- */
+.part{margin:132px 0 0;border-top:2px solid var(--ink);padding-top:22px}
+.part-head{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.part-head .k{font-size:13px;font-weight:500;letter-spacing:.26em;color:var(--accent)}
+.part-head .m{font-family:var(--num);font-size:12px;letter-spacing:.18em;color:var(--ink4);text-transform:uppercase}
+h2{margin:44px 0 0;font-family:var(--serif);font-weight:700;font-size:clamp(34px,4.4vw,64px);line-height:1.3;letter-spacing:-.01em}
+.part .lede{margin:28px 0 0}
+
+.sub{margin:100px 0 0;border-top:1px solid var(--rule);padding-top:28px}
+.sub-head{display:flex;gap:24px;align-items:flex-start}
+.sub-head .no{font-family:var(--num);font-weight:700;font-size:14px;letter-spacing:.08em;color:var(--accent);width:48px;flex:none;line-height:1.9;padding-top:6px}
+h3{margin:0;font-family:var(--serif);font-weight:700;font-size:clamp(25px,2.9vw,36px);line-height:1.42;letter-spacing:-.005em}
+.sub .body{margin:26px 0 0;max-width:760px;font-size:17px;line-height:1.95;color:var(--ink2)}
+
+/* ---------- 图表 ---------- */
+.chart{margin:56px 0 0;position:relative}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.cap{margin:22px 0 0;font-size:13px;line-height:1.85;color:var(--ink4);max-width:880px}
+.hv{cursor:default;transition:opacity .3s ease}
+.hv:hover{opacity:.78}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+.row2.a{grid-template-columns:minmax(320px,460px) 1fr;gap:64px}
+.row2.r70{grid-template-columns:minmax(0,1.9fr) 1fr;gap:48px}
+@media(max-width:900px){.row2,.row2.a,.row2.r70{grid-template-columns:1fr;gap:44px}}
+.chart.side{margin-top:0}
+
+.bignums{display:flex;gap:56px;flex-wrap:wrap;align-items:flex-end;margin:8px 0 0}
+.bignum .v{font-family:var(--num);font-weight:700;font-size:clamp(64px,9vw,124px);line-height:.86;letter-spacing:-.03em;display:block}
+.bignum .v.a{color:var(--accent)}
+.bignum .v.b{color:var(--ink4)}
+.bignum .l{display:block;margin-top:18px;font-size:14px;line-height:1.6;color:var(--ink3);max-width:250px}
+.vs{align-self:center;font-family:var(--serif);font-size:22px;color:var(--ink4);padding-bottom:34px}
+
+.cmp{margin:0}
+.cmp .item{margin:0 0 30px}
+.cmp .top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:11px}
+.cmp .top .v{font-family:var(--num);font-weight:600;font-size:44px;line-height:1;color:var(--accent);letter-spacing:-.01em}
+.cmp .top .v.g{color:var(--ink4)}
+.cmp .top .l{font-size:14px;color:var(--ink3);text-align:right}
+.cmp .track{height:6px;background:var(--rule2)}
+.cmp .fill{height:6px;background:var(--accent);width:0;transition:width 1s cubic-bezier(.22,.61,.25,1)}
+.cmp .fill.g{background:#BFB5A0}
+.cmp .note{margin-top:34px;font-family:var(--serif);font-size:20px;line-height:1.7;color:var(--ink);max-width:560px}
+
+.legend{display:flex;gap:26px;flex-wrap:wrap;margin:26px 0 0}
+.legend button{
+  appearance:none;background:none;border:none;padding:0;cursor:pointer;
+  display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:14px;color:var(--ink2);
+  border-bottom:1px solid transparent;padding-bottom:3px;transition:color .3s,border-color .3s
+}
+.legend button i{display:block;width:18px;height:4px;flex:none}
+.legend button:hover{color:var(--ink)}
+.legend button.on{border-color:var(--ink)}
+.cityline{transition:opacity .45s ease,stroke-width .45s ease}
+.chart.focused .cityline{opacity:.12}
+.chart.focused .cityline.active{opacity:1;stroke-width:4.5}
+
+.citycards{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:52px 0 0;border-top:1px solid var(--rule)}
+.citycards .cc{padding:26px 22px 30px 0;border-right:1px solid var(--rule)}
+.citycards .cc:last-child{border-right:none;padding-right:0}
+.citycards .nm{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:500}
+.citycards .nm i{display:block;width:9px;height:9px;flex:none}
+.citycards .ds{margin:14px 0 0;font-size:13.5px;line-height:1.85;color:var(--ink3)}
+@media(max-width:900px){.citycards{grid-template-columns:1fr 1fr}.citycards .cc{border-right:none;border-bottom:1px solid var(--rule);padding-right:16px}}
+@media(max-width:560px){.citycards{grid-template-columns:1fr}}
+
+/* ---------- 结尾 ---------- */
+.ending{margin:150px 0 0;border-top:2px solid var(--ink);padding:64px 0 0}
+.ending .big{font-family:var(--serif);font-weight:700;font-size:clamp(32px,4.6vw,62px);line-height:1.34;letter-spacing:-.01em;max-width:1000px;margin:0}
+.ending .sml{margin:30px 0 0;font-size:17px;line-height:1.9;color:var(--ink3);max-width:640px}
+.ending .endmark{margin:64px 0 0;width:14px;height:14px;background:var(--accent)}
+.pagefoot{margin:80px 0 0;padding:0 0 96px}
+.pagefoot .rule{height:1px;background:var(--rule)}
+.pagefoot .inner{padding:26px 0 0;display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.pagefoot .so{font-size:12.5px;line-height:2;color:var(--ink4);max-width:860px}
+.pagefoot .so b{font-weight:500;color:var(--ink3)}
+.pagefoot .tg{font-family:var(--num);font-size:11px;letter-spacing:.18em;color:var(--ink4);text-transform:uppercase}
+
+#tip{
+  position:fixed;z-index:200;pointer-events:none;opacity:0;
+  background:var(--ink);color:var(--paper);border-radius:2px;
+  padding:9px 11px;font-family:var(--sans);font-size:12.5px;line-height:1.65;
+  letter-spacing:.01em;transition:opacity .16s ease;max-width:260px;
+  box-shadow:0 6px 20px rgba(26,26,24,.18)
+}
+#tip.on{opacity:1}
+</style>
+<noscript><style>.r,.r-flat>*:not(.ghost){opacity:1!important;transform:none!important}.chart svg{opacity:1!important;transform:none!important}.chart svg [class*="a-"]{opacity:1!important;transform:none!important;stroke-dashoffset:0!important}.cmp .fill{width:auto!important}</style></noscript>
+<style>
+/* ==========================================================================
+   设计增强层 · 只加视觉与动效，不改动任何文字内容与数据
+   v3：去掉全部底纹（回到第一版的统一纸色），修好图表动效
+   ========================================================================== */
+
+html{overflow-x:clip}
+
+/* ---------- 1. 章节定位（幽灵编号与弧线装饰的锚点） ---------- */
+:root{--ink-rgb:26,26,24}
+.part,.sub,.ending{position:relative}
+.sub > *:not(.ghost):not(.orn), .part > *:not(.ghost):not(.orn){position:relative;z-index:1}
+
+/* ---------- 2. 章节幽灵数字（复用的既有编号，纯装饰） ---------- */
+.ghost{
+  position:absolute;top:-14px;right:4px;z-index:0;
+  font-family:var(--num);font-weight:700;line-height:.76;letter-spacing:-.05em;
+  font-size:clamp(104px,14.5vw,208px);
+  color:rgba(178,58,43,.07);
+  pointer-events:none;user-select:none;
+}
+.part .ghost{font-size:clamp(120px,17vw,264px);top:-34px;color:rgba(var(--ink-rgb),.058)}
+@media(max-width:860px){.ghost{display:none}}
+
+/* ---------- 3. 章节分隔的同心弧装饰（呼应「层层筛掉」） ---------- */
+.orn{position:absolute;top:34px;right:6px;width:clamp(200px,22vw,320px);z-index:0;pointer-events:none}
+.orn svg{display:block;width:100%;height:auto}
+.ending .orn{top:auto;bottom:-72px;right:-56px;width:clamp(220px,26vw,380px)}
+@media(max-width:1100px){.orn{display:none}}
+
+/* ---------- 4. 图表「图版」框：细线 + 角标 ---------- */
+.chart{position:relative}
+.chart:not(.side){padding-top:30px;margin:44px 0 0}
+.chart:not(.side)::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;background:var(--rule);
+}
+.chart:not(.side)::after{
+  content:"";position:absolute;top:0;left:0;width:68px;height:3px;background:var(--accent);opacity:.55;
+}
+.row2 .chart.side{margin-top:0;padding-top:0}
+.row2 .chart.side::before,.row2 .chart.side::after{display:none}
+
+/* ---------- 5. 微交互 ---------- */
+.srow{transition:background-color .38s ease,padding-left .38s cubic-bezier(.22,.61,.25,1)}
+.srow:hover{background-color:rgba(var(--ink-rgb),.022);padding-left:12px}
+.srow .n{transition:color .38s ease}
+.srow:hover .n{color:var(--accent)}
+
+.cmp .top .v{transition:transform .4s cubic-bezier(.22,.61,.25,1)}
+.cmp .item:hover .top .v{transform:translateX(4px)}
+.cmp .item .track{position:relative}
+.cmp .item .track::after{
+  content:"";position:absolute;top:0;bottom:0;right:0;width:1px;background:rgba(var(--ink-rgb),.10)
+}
+
+.citycards .cc{transition:background-color .42s ease}
+.citycards .cc:hover{background-color:rgba(var(--ink-rgb),.024)}
+
+.bignum .v{transition:letter-spacing .7s cubic-bezier(.22,.61,.25,1)}
+.bignum:hover .v{letter-spacing:0}
+
+.pull i{transition:height .7s cubic-bezier(.22,.61,.25,1)}
+.pull:hover i{height:100%}
+
+/* ---------- 6. 图表入场 / 出场动效 ----------
+   三层结构，保证每张图都「整幅」进出，不会留下坐标系孤零零站着：
+     ① .chart svg        —— 整幅图作为一个整体淡入 / 淡出
+     ② [class*="a-"]     —— 各图元按自己的节奏错位就位
+   -------------------------------------------------------------------------- */
+.chart svg{
+  opacity:0;transform:translateY(10px);
+  transition:opacity .5s cubic-bezier(.24,.72,.28,1),transform .5s cubic-bezier(.24,.72,.28,1);
+}
+.chart svg [class*="a-"]{
+  transition-property:opacity,transform,stroke-dashoffset,filter;
+  transition-duration:var(--dur,.62s),var(--dur,.62s),var(--dur,.62s),.26s;
+  transition-timing-function:var(--ease,cubic-bezier(.24,.72,.28,1));
+  transition-delay:var(--d,0s);
+  will-change:opacity,transform;
+}
+
+/* —— 各图元的起始状态 —— */
+.chart svg .a-fade{opacity:0}
+.chart svg .a-draw{
+  stroke-dasharray:var(--len,1);stroke-dashoffset:var(--len,1);
+  --dur:1.05s;--ease:cubic-bezier(.3,.72,.24,1);
+}
+.chart svg .a-wipe{
+  opacity:0;transform:scaleX(0);transform-box:fill-box;transform-origin:left center;--dur:.72s;
+}
+.chart svg .a-pop{
+  opacity:0;transform:scale(.3);transform-box:fill-box;transform-origin:center;
+  --ease:cubic-bezier(.34,1.32,.5,1);
+}
+.chart svg .a-rise{
+  opacity:0;transform:scaleY(.16);transform-box:fill-box;transform-origin:bottom;--dur:.72s;
+}
+.chart svg .a-block{opacity:0;transform:translateY(12px)}
+.chart svg .a-bloom{opacity:0;transform:scale(.6);--dur:.95s}
+
+/* —— 入场：图表进入视口后就位（按各图元 --d 依次错位） —— */
+.chart.in svg{opacity:1;transform:none}
+.chart.in .a-fade{opacity:1}
+.chart.in .a-draw{stroke-dashoffset:0}
+.chart.in .a-wipe{opacity:1;transform:scaleX(1)}
+.chart.in .a-pop{opacity:1;transform:scale(1)}
+.chart.in .a-rise{opacity:1;transform:scaleY(1)}
+.chart.in .a-block{opacity:1;transform:none}
+.chart.in .a-bloom{opacity:1;transform:scale(1)}
+
+/* —— 出场：离开视口时反向退场。更快、不带错位延迟、无回弹 —— */
+.chart.out svg{opacity:0;transform:translateY(-7px);transition-duration:.34s}
+.chart.out [class*="a-"]{
+  --dur:.32s;--ease:cubic-bezier(.5,0,.72,.2);
+  transition-delay:0s;
+}
+.chart.out .a-fade{opacity:0;transform:translateY(-6px)}
+.chart.out .a-draw{stroke-dashoffset:var(--len,1)}
+.chart.out .a-wipe{opacity:0;transform:scaleX(.05)}
+.chart.out .a-pop{opacity:0;transform:scale(.34)}
+.chart.out .a-rise{opacity:0;transform:scaleY(.1)}
+.chart.out .a-block{opacity:0;transform:translateY(-9px)}
+.chart.out .a-bloom{opacity:0;transform:scale(.66)}
+
+/* 悬浮反馈只用 filter，且不重写 transition 属性（否则会吃掉入场过渡） */
+.chart svg .hv{cursor:default}
+.chart svg .hv:hover{filter:brightness(.84) saturate(1.06)}
+
+/* 容器级错位出场（大区块本身不淡出，只让子元素依次进） */
+.r-flat{opacity:1;transform:none;transition:none}
+.r-flat > *:not(.ghost){
+  opacity:0;transform:translateY(16px);
+  transition:opacity .58s cubic-bezier(.24,.72,.28,1),transform .58s cubic-bezier(.24,.72,.28,1);
+  transition-delay:var(--sd,0s);
+}
+.r-flat.in > *:not(.ghost){opacity:1;transform:none}
+.r-flat > *:nth-child(2){--sd:.05s}
+.r-flat > *:nth-child(3){--sd:.11s}
+.r-flat > *:nth-child(4){--sd:.17s}
+.r-flat > *:nth-child(5){--sd:.23s}
+.r-flat > *:nth-child(6){--sd:.29s}
+.r-flat > *:nth-child(7){--sd:.35s}
+.r:not(.in).r-flat > *:not(.ghost){transition-duration:.24s;transition-delay:0s}
+
+.r:not(.in) .fill{transition-duration:.3s}
+
+/* 无脚本 / 减弱动效：直接呈现最终状态 */
+@media(prefers-reduced-motion:reduce){
+  .r,.r-flat > *:not(.ghost){opacity:1!important;transform:none!important;transition:none!important}
+  .chart svg{opacity:1!important;transform:none!important;transition:none!important}
+  .chart svg [class*="a-"]{opacity:1!important;transform:none!important;stroke-dashoffset:0!important;transition:none!important}
+  .cmp .fill{transition:none!important}
+}
+
+/* ---------- 7. 长标题排版：避免换行后只剩一两个字（孤字），自动均衡两行 ---------- */
+h2{text-wrap:balance}
+@media(max-width:900px){h2{text-wrap:wrap}}
+
+/* ---------- 7. 长标题排版：避免换行后只剩一两个字（孤字），自动均衡两行 ---------- */
+h2{text-wrap:balance}
+@media(max-width:900px){h2{text-wrap:wrap}}
+
+/* ---------- 8. 读图块：竖栏 + 通栏标题句 + 「小注｜数字」分栏 ---------- */
+.rn{display:grid;grid-template-columns:46px minmax(0,1fr);margin:44px 0 0;max-width:1040px}
+.rn-rail{position:relative;border-right:1px solid var(--rule)}
+.rn-rail span{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  writing-mode:vertical-rl;text-orientation:upright;
+  font-size:11px;letter-spacing:.5em;color:var(--accent);line-height:1;
+}
+.rn-body{padding-left:34px}
+.rn-lead{
+  margin:0;font-family:var(--serif);font-weight:600;
+  font-size:clamp(21px,2.25vw,28px);line-height:1.62;letter-spacing:-.004em;color:var(--ink);
+  max-width:860px;text-wrap:balance;
+}
+.rn-bottom{
+  display:grid;grid-template-columns:minmax(0,.66fr) minmax(0,1.34fr);gap:46px;
+  margin:30px 0 0;padding:20px 0 0;border-top:1px solid var(--ink);align-items:start;
+}
+.rn-fn{margin:0;padding-top:1px;font-size:12.5px;line-height:2;color:var(--ink4)}
+.rn-fn b{font-weight:500;color:var(--ink3)}
+.rn-pair{display:grid;grid-template-columns:1fr 1fr}
+.rn-cell{padding:0 22px 0 0}
+.rn-cell + .rn-cell{border-left:1px solid var(--rule);padding-left:26px;padding-right:0}
+.rn-nm{display:block;font-size:12.5px;letter-spacing:.1em;color:var(--ink3);line-height:1.5}
+.rn-v{
+  display:flex;align-items:baseline;gap:3px;margin:12px 0 0;white-space:nowrap;
+  font-family:var(--num);font-weight:700;
+  font-size:clamp(38px,4.3vw,54px);line-height:.84;letter-spacing:-.03em;color:var(--accent);
+}
+.rn-cell.low .rn-v{color:var(--ink4)}
+.rn-v i{font-style:normal;font-family:var(--sans);font-size:12px;font-weight:400;color:var(--ink4);letter-spacing:0}
+.rn-v .pl{font-size:.42em;font-weight:600;margin-right:1px}
+.rn-bar{display:block;height:3px;background:var(--rule2);margin:20px 0 0;position:relative;overflow:hidden}
+.rn-bar .fill{display:block;height:3px;width:0;background:var(--accent);transition:width 1.05s cubic-bezier(.22,.61,.25,1) .12s}
+.rn-cell.low .rn-bar .fill{background:var(--sand3)}
+.rn-d{display:block;margin:11px 0 0;font-size:12.5px;line-height:1.7;color:var(--ink4)}
+@media(max-width:900px){
+  .rn{max-width:760px}
+  .rn-bottom{grid-template-columns:1fr;gap:24px}
+}
+@media(max-width:820px){
+  .rn{grid-template-columns:28px minmax(0,1fr)}
+  .rn-body{padding-left:20px}
+  .rn-lead{font-size:19px}
+  .rn-pair{grid-template-columns:1fr}
+  .rn-cell{padding:0}
+  .rn-cell + .rn-cell{border-left:none;border-top:1px solid var(--rule);padding-left:0;margin-top:18px;padding-top:18px}
+  .rn-v{font-size:38px}
+}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div id="tip"></div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="brand"><i></i>AI 就业观察</div>
+    <div class="meta">数据专题 / 2026</div>
+  </div>
+</header>
+
+<main>
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="kick r"><i></i>数据专题 · 招聘文本分析</div>
+    <h1 class="r">会 AI，还不是硬门槛
+      <span class="sm">招聘文本里的技能期待、学历筛选与薪资分化</span>
+    </h1>
+    <p class="lede r">AI 正在进入招聘市场，但它究竟改变了什么？招聘信息中出现 AI，并不等于所有岗位都要求 AI；AI 相关岗位数量增长，也不意味着每一种 AI 职业都能获得高薪。</p>
+    <div class="pull r"><i></i><p>AI 技能在多大程度上进入了招聘要求？哪些职业更早把它变成明确的任职条件？当 AI 岗位不断出现，不同城市、不同职业之间的机会又如何分化？</p></div>
+
+    <div class="stat-block r">
+      <div class="stat-big">
+        <span class="n count" data-to="1583" data-sep="1">1,583</span>
+        <span class="c">条岗位招聘信息。样本采集自智联招聘、BOSS 直聘两个平台，时间区间为 2024 年 1 月 1 日至 2026 年 10 月 1 日。</span>
+      </div>
+      <div class="stat-list">
+        <div class="srow"><span class="n">15.3%</span><span class="t">岗位启事里提到 AI，约合每 6 条就有 1 条</span></div>
+        <div class="srow"><span class="n">7.5%</span><span class="t">同时用上「必须 / 精通」这类硬性措辞，约合每 13 条才有 1 条</span></div>
+        <div class="srow"><span class="n cn">五城</span><span class="t">样本覆盖北京、上海、深圳、杭州、广州，五座城市的岗位数量与薪资定价并不相同</span></div>
+      </div>
+    </div>
+
+    <div class="foot r">
+      <div class="src">数据说明：采集智联招聘、BOSS 直聘两个平台 2024 年 1 月 1 日至 2026 年 10 月 1 日的岗位招聘信息，共 1,583 条。文中比例均为该样本内部的占比，薪资为岗位标注月薪的中位数与均值，不代表全国招聘市场的全量水平。</div>
+      <div class="sc">向下滚动阅读</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== PART 1 ==================== -->
+<section class="wrap">
+  <div class="part r r-flat"><span class="ghost" aria-hidden="true">01</span><span class="orn" aria-hidden="true"><svg viewBox='0 0 420 420' xmlns='http://www.w3.org/2000/svg' fill='none'><g stroke='#B23A2B'><circle cx='210' cy='210' r='198' stroke-opacity='.17' stroke-width='1'/><circle cx='210' cy='210' r='150' stroke-opacity='.13' stroke-width='1'/><circle cx='210' cy='210' r='102' stroke-opacity='.10' stroke-width='1'/><circle cx='210' cy='210' r='54' stroke-opacity='.07' stroke-width='1'/><path d='M210 12 A198 198 0 0 1 372.2 96.4' stroke-opacity='.34' stroke-width='2'/><path d='M210 60 A150 150 0 0 1 332.9 124' stroke-opacity='.28' stroke-width='2'/><path d='M210 108 A102 102 0 0 1 293.6 151.5' stroke-opacity='.22' stroke-width='2'/><path d='M210 156 A54 54 0 0 1 254.2 179' stroke-opacity='.20' stroke-width='2'/></g></svg></span>
+    <div class="part-head"><span class="k">第一部分</span><span class="m">01</span></div>
+    <h2>AI 技能如何改变招聘门槛</h2>
+    <p class="lede">AI 还没有成为写进招聘启事的硬性门槛，但它已经悄悄改变了岗位要求的写法、学历的权重，以及薪资的定价方式。</p>
+  </div>
+
+  <!-- 01 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">01</span>
+    <div class="sub-head"><span class="no">01</span><h3>招聘市场对 AI 的态度，正处于从关注到筛选的过渡阶段</h3></div>
+    <p class="body">AI 已经进入一部分岗位的招聘文本，但被提及、被列为任职要求和被明确设为硬性条件，并不是同一回事：前者意味着招聘者开始关注这种能力，后两者才更直接关系到求职者是否会因此失去竞争机会。这种影响未必首先表现为条件的全面收紧，也可能先表现为岗位描述的松动——企业开始期待求职者能用 AI 完成部分工作，却还没有建立统一的能力标准。</p>
+    <div class="row2 a">
+      <div class="chart side">
+        <div class="rings" style="position:relative"><svg viewBox='0 0 520 520' width='520' height='520' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g fill='none' stroke-width='38'><circle class='a-fade' style='--d:.04s' cx='260' cy='260' r='186' stroke='#E6E1D6'/><circle class='a-fade' style='--d:.04s' cx='260' cy='260' r='138' stroke='#E6E1D6'/><circle class='a-fade' style='--d:.04s' cx='260' cy='260' r='90' stroke='#E6E1D6'/><circle class='hv a-fade' data-tip='全部在招岗位 100%' cx='260' cy='260' r='234' stroke='#2B2B2A'/><path class='hv a-draw' style='--d:0.04s' pathLength='1' data-tip='启事里提到 AI 15.3%' d='M 260 74 A 186 186 0 0 1 412.5 153.5' stroke='#D9A79A'/><path class='hv a-draw' style='--d:0.21s' pathLength='1' data-tip='写进职位要求 8.3%' d='M 260 122 A 138 138 0 0 1 328.7 140.3' stroke='#C9735C'/><path class='hv a-draw' style='--d:0.38s' pathLength='1' data-tip='用「必须 / 精通」类措辞 7.5%' d='M 260 170 A 90 90 0 0 1 300.9 179.8' stroke='#B23A2B'/></g></svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+            <span style="font-family:var(--num);font-weight:700;font-size:clamp(30px,3.6vw,46px);line-height:1;color:var(--accent)">7.5%</span>
+            <span style="font-size:12.5px;color:var(--ink3);margin-top:8px">真正写进职位要求</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="cmp">
+          <div class="item">
+            <div class="top"><span class="v">15.3%</span><span class="l">启事里提到 AI</span></div>
+            <div class="track"><div class="fill" data-w="96" style="background:#D9A79A"></div></div>
+          </div>
+          <div class="item">
+            <div class="top"><span class="v">8.3%</span><span class="l">把它写进职位要求</span></div>
+            <div class="track"><div class="fill" data-w="52" style="background:#C9735C"></div></div>
+          </div>
+          <div class="item">
+            <div class="top"><span class="v">7.5%</span><span class="l">且用「必须 / 精通」类措辞</span></div>
+            <div class="track"><div class="fill" data-w="47"></div></div>
+          </div>
+          <p class="note">门槛不是一道墙，而是一道坡度——越往上，真正卡住人的要求就越少，但含金量越高。</p>
+        </div>
+      </div>
+    </div>
+    <p class="cap">刻度 0 – 16%。四环由外向内依次为：全部在招岗位 100%、启事里提到 AI 15.3%、写进职位要求 8.3%、且用「必须 / 精通」类措辞 7.5%。</p>
+    <p class="body" style="margin-top:34px">从现有样本看，AI 技能要求尚未覆盖所有岗位，但这并不意味着它对就业市场的影响有限。对求职者而言，真正值得关注的不是招聘文本中有没有出现 AI，而是这种要求是否与岗位的核心工作任务相关，以及它是否会影响简历筛选、面试评价和最终录用。</p>
+  </div>
+
+  <!-- 02 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">02</span>
+    <div class="sub-head"><span class="no">02</span><h3>措辞词频：出现最多的是「优先」，不是「必须」</h3></div>
+    <p class="body">比起直接要求求职者「必须」掌握 AI，招聘文本更常通过「优先」「具备」「熟练」等不同措辞表达能力期待。这反映出，AI 技能正在进入招聘评价体系，但企业对它的要求方式并不完全一致。</p>
+    <div class="cmp" style="display:flex;gap:64px;flex-wrap:wrap;margin:56px 0 0">
+      <div style="min-width:260px">
+        <div style="font-size:14px;font-weight:500;letter-spacing:.05em;color:var(--ink3)">硬措辞 · 要求型</div>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-top:10px">
+          <span style="font-family:var(--num);font-weight:700;font-size:46px;line-height:1;color:var(--accent)">51.1%</span>
+          <span style="font-size:13px;color:var(--ink4)">合计占比</span>
+        </div>
+      </div>
+      <div style="min-width:260px">
+        <div style="font-size:14px;font-weight:500;letter-spacing:.05em;color:var(--ink3)">软措辞 · 加分类</div>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-top:10px">
+          <span style="font-family:var(--num);font-weight:700;font-size:46px;line-height:1;color:var(--sand)">48.9%</span>
+          <span style="font-size:13px;color:var(--ink4)">合计占比</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart">
+      <div class="treemap"><svg viewBox='0 0 1264 700' width='1264' height='700' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-block' style='--d:0.04s'><rect class='hv' data-tip='具备 · 占全部措辞 17%' x='0' y='1.5' width='600' height='229.9' fill='#A32D2D'/><text x='26' y='110.4' style='font-family:var(--sans)' font-size='17' fill='#FFFFFF'>具备</text><text x='26' y='144.4' style='font-family:var(--num);font-weight:600' font-size='32' fill='#FFFFFF'>17%</text></g><g class='a-block' style='--d:0.08s'><rect class='hv' data-tip='熟练 · 占全部措辞 16.3%' x='0' y='234.4' width='600' height='220.3' fill='#B03631'/><text x='26' y='338.5' style='font-family:var(--sans)' font-size='17' fill='#FFFFFF'>熟练</text><text x='26' y='372.5' style='font-family:var(--num);font-weight:600' font-size='32' fill='#FFFFFF'>16.3%</text></g><g class='a-block' style='--d:0.13s'><rect class='hv' data-tip='熟练使用 · 占全部措辞 7.4%' x='0' y='457.7' width='600' height='98.4' fill='#BC4136'/><text x='26' y='500.8' style='font-family:var(--sans)' font-size='17' fill='#FFFFFF'>熟练使用</text><text x='26' y='534.8' style='font-family:var(--num);font-weight:600' font-size='32' fill='#FFFFFF'>7.4%</text></g><g class='a-block' style='--d:0.18s'><rect class='hv' data-tip='精通 · 占全部措辞 3%' x='0' y='559' width='600' height='38.1' fill='#C74E41'/><text x='26' y='583.1' style='font-family:var(--sans)' font-size='15' fill='#FFFFFF'>精通 3%</text></g><g class='a-block' style='--d:0.22s'><rect class='hv' data-tip='熟练运用 · 占全部措辞 2.2%' x='0' y='600.1' width='600' height='27.1' fill='#D15C4E'/><text x='26' y='618.7' style='font-family:var(--sans)' font-size='15' fill='#FFFFFF'>熟练运用 2.2%</text></g><g class='a-block' style='--d:0.26s'><rect class='hv' data-tip='掌握 · 占全部措辞 1.5%' x='0' y='630.3' width='600' height='17.5' fill='#DB6C5D'/></g><g class='a-block' style='--d:0.31s'><rect class='hv' data-tip='能够独立 · 占全部措辞 1.5%' x='0' y='650.8' width='600' height='17.5' fill='#E47E70'/></g><g class='a-block' style='--d:0.35s'><rect class='hv' data-tip='能独立 · 占全部措辞 0.7%' x='0' y='671.4' width='600' height='6.6' fill='#EC9184'/></g><g class='a-block' style='--d:0.40s'><rect class='hv' data-tip='熟练掌握 · 占全部措辞 0.7%' x='0' y='681' width='600' height='6.6' fill='#F2A599'/></g><g class='a-block' style='--d:0.44s'><rect class='hv' data-tip='必须 · 占全部措辞 0.7%' x='0' y='690.5' width='600' height='6.6' fill='#F7BAAF'/></g><g class='a-block' style='--d:0.20s'><rect class='hv' data-tip='优先 · 占全部措辞 23.7%' x='664' y='1.5' width='600' height='336.3' fill='#A8761C'/><text x='690' y='163.6' style='font-family:var(--sans)' font-size='17' fill='#FFFFFF'>优先</text><text x='690' y='197.6' style='font-family:var(--num);font-weight:600' font-size='32' fill='#FFFFFF'>23.7%</text></g><g class='a-block' style='--d:0.24s'><rect class='hv' data-tip='熟悉 · 占全部措辞 14.1%' x='664' y='340.8' width='600' height='198.8' fill='#B8871F'/><text x='690' y='434.2' style='font-family:var(--sans)' font-size='17' fill='#FFFFFF'>熟悉</text><text x='690' y='468.2' style='font-family:var(--num);font-weight:600' font-size='32' fill='#FFFFFF'>14.1%</text></g><g class='a-block' style='--d:0.29s'><rect class='hv' data-tip='了解 · 占全部措辞 5.9%' x='664' y='542.6' width='600' height='81.5' fill='#C99A2C'/><text x='690' y='577.3' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>了解</text><text x='690' y='611.3' style='font-family:var(--num);font-weight:600' font-size='32' fill='#3F3C36'>5.9%</text></g><g class='a-block' style='--d:0.34s'><rect class='hv' data-tip='加分 · 占全部措辞 4.4%' x='664' y='627.1' width='600' height='60' fill='#D9B052'/><text x='690' y='651.1' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>加分</text><text x='690' y='685.1' style='font-family:var(--num);font-weight:600' font-size='32' fill='#3F3C36'>4.4%</text></g><g class='a-block' style='--d:0.38s'><rect class='hv' data-tip='欢迎 · 占全部措辞 0.7%' x='664' y='690' width='600' height='7' fill='#E9CD8E'/></g></svg></div>
+    </div>
+    <p class="cap">面积代表该措辞在岗位要求文本中的出现占比。硬措辞指「具备 / 熟练 / 精通」等要求型表达，软措辞指「优先 / 熟悉 / 了解 / 加分」等加分类表达。</p>
+    <p class="body" style="margin-top:34px">「优先」强调的是竞争优势：具备相关能力的人可能更受青睐，但没有这项能力未必意味着无法胜任岗位。「具备」和「熟练」则更接近能力描述，意味着招聘者希望求职者能够把相关工具或技能用于实际工作。不过，仅凭这些词语，还不能判断企业究竟要求基础工具使用、工作流整合，还是专业技术开发。</p>
+    <p class="body" style="margin-top:18px">因此，招聘市场中的 AI 技能要求可能存在一个重要特征：企业对这项能力的期待，正在先于标准的统一而扩散。对求职者而言，这带来的不只是学习 AI 的压力，也包括判断能力要求究竟有多高的成本。</p>
+  </div>
+
+  <!-- 03 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">03</span>
+    <div class="sub-head"><span class="no">03</span><h3>要求 AI 技能的岗位，同时也有更高的学历要求</h3></div>
+    <p class="body">招聘者既可能期待候选人具备 AI 工具使用能力，也可能通过学历要求筛选专业基础、学习经历或其他被认为与岗位相关的能力。从样本的学历分布看，要求 AI 技能的岗位中，本科要求率为 <span class="nowrap">70.7%</span>，普通岗位为 <span class="nowrap">40.9%</span>，相差 <span class="nowrap">29.8</span> 个百分点。</p>
+    <div class="row2 a">
+      <div class="chart side"><div class="edu"><svg viewBox='0 0 520 520' width='520' height='520' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><path class='hv a-draw' style='--d:0.05s' pathLength='1' data-tip='普通岗位 · 本科 40.9%（372 / 910 条）' d='M 260 35 A 225 225 0 0 1 381.8 449.2' fill='none' stroke='#E4B3A6' stroke-width='52'/><path class='hv a-draw' style='--d:0.14s' pathLength='1' data-tip='普通岗位 · 大专 42.6%（388 / 910 条）' d='M 381.8 449.2 A 225 225 0 0 1 66.3 145.5' fill='none' stroke='#EFD9A8' stroke-width='52'/><path class='hv a-draw' style='--d:0.23s' pathLength='1' data-tip='普通岗位 · 高中及以下 7.8%（71 条）' d='M 66.3 145.5 A 225 225 0 0 1 143 67.8' fill='none' stroke='#DAD3C4' stroke-width='52'/><path class='hv a-draw' style='--d:0.32s' pathLength='1' data-tip='普通岗位 · 学历不限 7.4%（67 条）' d='M 143 67.8 A 225 225 0 0 1 241.6 35.8' fill='none' stroke='#E4DDCE' stroke-width='52'/><path class='hv a-draw' style='--d:0.41s' pathLength='1' data-tip='普通岗位 · 硕士 1.3%（12 条）' d='M 241.6 35.8 A 225 225 0 0 1 260 35' fill='none' stroke='#ECE5D6' stroke-width='52'/><path class='hv a-draw' style='--d:0.64s' pathLength='1' data-tip='要求 AI 的岗位 · 本科 70.7%' d='M 260 103 A 157 157 0 1 1 108.7 301.9' fill='none' stroke='#B23A2B' stroke-width='52'/><path class='hv a-draw' style='--d:0.73s' pathLength='1' data-tip='要求 AI 的岗位 · 大专 23.2%' d='M 108.7 301.9 A 157 157 0 0 1 201.3 114.4' fill='none' stroke='#C2913F' stroke-width='52'/><path class='hv a-draw' style='--d:0.82s' pathLength='1' data-tip='要求 AI 的岗位 · 其他学历 6.1%' d='M 201.3 114.4 A 157 157 0 0 1 260 103' fill='none' stroke='#A89F92' stroke-width='52'/></svg></div></div>
+      <div class="cmp">
+        <div class="item">
+          <div class="top"><span class="v">70.7%</span><span class="l">要求 AI 技能的岗位 · 本科要求率</span></div>
+          <div class="track"><div class="fill" data-w="100"></div></div>
+        </div>
+        <div class="item">
+          <div class="top"><span class="v g">40.9%</span><span class="l">普通岗位 · 本科要求率</span></div>
+          <div class="track"><div class="fill g" data-w="58"></div></div>
+        </div>
+        <p class="note">同一张文凭，在前者里是底线，在后者里只是加分。</p>
+      </div>
+    </div>
+    <p class="cap">内环为要求 AI 技能的岗位学历分布，外环为普通岗位学历分布。</p>
+    <p class="body" style="margin-top:34px">但这并不能直接证明 AI 技能本身导致了学历要求提高。要求 AI 的岗位可能更多集中于技术研发、数据分析或其他专业性较强的职业，这些岗位原本就可能有更高的学历要求。换句话说，学历差异既可能与 AI 技能有关，也可能与岗位类型的构成有关。</p>
+  </div>
+
+  <!-- 04 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">04</span>
+    <div class="sub-head"><span class="no">04</span><h3>AI 硬门槛岗位与其他岗位的薪资比较</h3></div>
+    <p class="body">AI 硬门槛岗位与其他岗位之间存在薪资差距，但这份差距并非在所有岗位和城市中都以相同幅度出现。总体样本中，两类岗位的月薪中位数分别为 <span class="nowrap">10,000</span> 元和 <span class="nowrap">8,000</span> 元，相差 <span class="nowrap">2,000</span> 元，相当于以其他岗位为基准高出 <span class="nowrap">25%</span>。</p>
+    <div class="bignums">
+      <div class="bignum"><span class="v a count" data-to="10" data-suffix="K">10K</span><span class="l">AI 硬门槛岗位<br>月薪中位数</span></div>
+      <div class="vs">对比</div>
+      <div class="bignum"><span class="v b count" data-to="8" data-suffix="K">8K</span><span class="l">同类其他岗位<br>月薪中位数</span></div>
+    </div>
+    <div class="chart">
+      <div class="dumbbell"><svg viewBox='0 0 1180 520' width='1180' height='520' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-fade' stroke='#E6E1D6' stroke-width='1'><line x1='300' y1='52' x2='300' y2='470'/><line x1='421.4' y1='52' x2='421.4' y2='470'/><line x1='542.9' y1='52' x2='542.9' y2='470'/><line x1='664.3' y1='52' x2='664.3' y2='470'/><line x1='785.7' y1='52' x2='785.7' y2='470'/><line x1='907.1' y1='52' x2='907.1' y2='470'/><line x1='1028.6' y1='52' x2='1028.6' y2='470'/><line x1='1150' y1='52' x2='1150' y2='470'/></g><g class='hv' data-tip='总体<br>AI 硬门槛岗位 10K ｜ 其他岗位 8K<br>差距 +25%'><line class='a-wipe' style='--d:0.06s' x1='785.7' y1='76' x2='907.1' y2='76' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.22s' cx='785.7' cy='76' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.28s' cx='907.1' cy='76' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.06s' x='276' y='82' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>总体</text><g class='hv' data-tip='本科学历内<br>AI 硬门槛岗位 12K ｜ 其他岗位 10K<br>差距 +20%'><line class='a-wipe' style='--d:0.14s' x1='907.1' y1='130' x2='1028.6' y2='130' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.30s' cx='907.1' cy='130' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.35s' cx='1028.6' cy='130' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.14s' x='276' y='136' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>本科学历内</text><g class='hv' data-tip='大专学历内<br>AI 硬门槛岗位 9K ｜ 其他岗位 8K<br>差距 +12%'><line class='a-wipe' style='--d:0.21s' x1='785.7' y1='184' x2='846.4' y2='184' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.37s' cx='785.7' cy='184' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.43s' cx='846.4' cy='184' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.21s' x='276' y='190' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>大专学历内</text><g class='hv' data-tip='北京市内<br>AI 硬门槛岗位 11K ｜ 其他岗位 10K<br>差距 +10%'><line class='a-wipe' style='--d:0.28s' x1='907.1' y1='238' x2='967.9' y2='238' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.44s' cx='907.1' cy='238' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.51s' cx='967.9' cy='238' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.28s' x='276' y='244' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>北京市内</text><g class='hv' data-tip='上海市内<br>AI 硬门槛岗位 10K ｜ 其他岗位 8K<br>差距 +25%'><line class='a-wipe' style='--d:0.36s' x1='785.7' y1='292' x2='907.1' y2='292' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.52s' cx='785.7' cy='292' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.58s' cx='907.1' cy='292' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.36s' x='276' y='298' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>上海市内</text><g class='hv' data-tip='公关 / 广告 / 品牌<br>AI 硬门槛岗位 12K ｜ 其他岗位 10K<br>差距 +20%'><line class='a-wipe' style='--d:0.43s' x1='907.1' y1='346' x2='1028.6' y2='346' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.59s' cx='907.1' cy='346' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.66s' cx='1028.6' cy='346' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.43s' x='276' y='352' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>公关 / 广告 / 品牌</text><g class='hv' data-tip='法律 / 合规<br>AI 硬门槛岗位 11K ｜ 其他岗位 10K<br>差距 +10%'><line class='a-wipe' style='--d:0.51s' x1='907.1' y1='400' x2='967.9' y2='400' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.67s' cx='907.1' cy='400' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.73s' cx='967.9' cy='400' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.51s' x='276' y='406' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>法律 / 合规</text><g class='hv' data-tip='运营 / 新媒体<br>AI 硬门槛岗位 7K ｜ 其他岗位 8K<br>差距 -12%'><line class='a-wipe' style='--d:0.58s' x1='725' y1='454' x2='785.7' y2='454' stroke='#CFC7B8' stroke-width='4'/><circle class='a-pop' style='--d:0.74s' cx='785.7' cy='454' r='9' fill='#B9B0A0'/><circle class='a-pop' style='--d:0.80s' cx='725' cy='454' r='11' fill='#B23A2B'/></g><text class='a-fade' style='--d:0.58s' x='276' y='460' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>运营 / 新媒体</text><g text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='18' fill='#8C8478'><text x='300' y='498'>0K</text><text x='421.4' y='498'>2K</text><text x='542.9' y='498'>4K</text><text x='664.3' y='498'>6K</text><text x='785.7' y='498'>8K</text><text x='907.1' y='498'>10K</text><text x='1028.6' y='498'>12K</text><text x='1150' y='498'>14K</text></g><text x='276' y='40' text-anchor='end' style='font-family:var(--sans)' font-size='14' fill='#8C8478'>月薪中位（K）</text><g style='font-family:var(--sans)' font-size='14' fill='#6B6862'><circle cx='946' cy='32' r='9' fill='#B9B0A0'/><text x='964' y='38'>其他岗位</text><circle cx='1076' cy='32' r='11' fill='#B23A2B'/><text x='1096' y='38'>AI 硬门槛岗位</text></g></svg></div>
+    </div>
+    <p class="cap">月薪中位（千元）。同一行内，红点为要求 AI 技能的岗位，灰点为其他岗位；差距在控制学历与城市后仍存在。</p>
+    <p class="body" style="margin-top:34px">将比较范围缩小到相同学历或相同城市后，差距仍出现在部分分组中。例如，本科学历岗位的中位数分别为 <span class="nowrap">12,000</span> 元和 <span class="nowrap">10,000</span> 元；大专学历岗位则分别为 <span class="nowrap">9,000</span> 元和 <span class="nowrap">8,000</span> 元。</p>
+    <p class="body" style="margin-top:18px">不过，岗位职责、行业、工作年限、企业规模和技术复杂度等因素，也可能同时影响技能要求与薪资水平。在这份样本中，AI 硬门槛岗位通常伴随更高的薪资报价，而且这种关联在部分学历和城市分组中仍然存在。</p>
+
+    <div class="row2" style="margin-top:88px">
+      <div class="chart side"><div class="radar"><svg viewBox='0 0 780 680' width='780' height='680' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-fade' fill='none' stroke='#E6E1D6' stroke-width='1'><polygon points='390,290 407.6,295.7 418.5,310.7 418.5,329.3 407.6,344.3 390,350 372.4,344.3 361.5,329.3 361.5,310.7 372.4,295.7'/><polygon points='390,260 425.3,271.5 447.1,301.5 447.1,338.5 425.3,368.5 390,380 354.7,368.5 332.9,338.5 332.9,301.5 354.7,271.5'/><polygon points='390,230 442.9,247.2 475.6,292.2 475.6,347.8 442.9,392.8 390,410 337.1,392.8 304.4,347.8 304.4,292.2 337.1,247.2'/><polygon points='390,200 460.5,222.9 504.1,282.9 504.1,357.1 460.5,417.1 390,440 319.5,417.1 275.9,357.1 275.9,282.9 319.5,222.9'/><polygon points='390,170 478.2,198.6 532.7,273.6 532.7,366.4 478.2,441.4 390,470 301.8,441.4 247.3,366.4 247.3,273.6 301.8,198.6'/><polygon points='390,140 495.8,174.4 561.2,264.4 561.2,375.6 495.8,465.6 390,500 284.2,465.6 218.8,375.6 218.8,264.4 284.2,174.4'/></g><g class='a-fade' style='--d:.1s' stroke='#EDE9DF' stroke-width='1'><line x1='390' y1='320' x2='390' y2='140'/><line x1='390' y1='320' x2='495.8' y2='174.4'/><line x1='390' y1='320' x2='561.2' y2='264.4'/><line x1='390' y1='320' x2='561.2' y2='375.6'/><line x1='390' y1='320' x2='495.8' y2='465.6'/><line x1='390' y1='320' x2='390' y2='500'/><line x1='390' y1='320' x2='284.2' y2='465.6'/><line x1='390' y1='320' x2='218.8' y2='375.6'/><line x1='390' y1='320' x2='218.8' y2='264.4'/><line x1='390' y1='320' x2='284.2' y2='174.4'/></g><polygon class='a-bloom' style='--d:.2s' points='390,166.4 467.6,213.2 480.7,290.5 459.6,342.6 437.3,385 390,386 355.4,367.6 348.3,333.5 341.5,304.2 372.7,296.2' fill='#B23A2B' fill-opacity='0.13' stroke='#B23A2B' stroke-width='2.5'/><circle class='hv a-pop' style='--d:0.36s' data-tip='AI 工具 · 25.6%' cx='390' cy='166.4' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.36s' cx='390' cy='166.4' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.40s' data-tip='大模型 · 22%' cx='467.6' cy='213.2' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.40s' cx='467.6' cy='213.2' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.45s' data-tip='数据分析 · 15.9%' cx='480.7' cy='290.5' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.45s' cx='480.7' cy='290.5' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.49s' data-tip='算法 · 12.2%' cx='459.6' cy='342.6' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.49s' cx='459.6' cy='342.6' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.54s' data-tip='Agent / 智能体 · 13.4%' cx='437.3' cy='385' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.54s' cx='437.3' cy='385' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.58s' data-tip='视觉 / 图像 · 11%' cx='390' cy='386' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.58s' cx='390' cy='386' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.63s' data-tip='AIGC · 9.8%' cx='355.4' cy='367.6' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.63s' cx='355.4' cy='367.6' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.68s' data-tip='AI 产品 · 7.3%' cx='348.3' cy='333.5' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.68s' cx='348.3' cy='333.5' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.72s' data-tip='Python / 编程 · 8.5%' cx='341.5' cy='304.2' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.72s' cx='341.5' cy='304.2' r='4.5' fill='#B23A2B'/><circle class='hv a-pop' style='--d:0.76s' data-tip='数据标注 · 4.9%' cx='372.7' cy='296.2' r='11' fill='transparent'/><circle class='a-pop' style='--d:0.76s' cx='372.7' cy='296.2' r='4.5' fill='#B23A2B'/><g class='a-fade' style='--d:.62s' style='font-family:var(--sans)' font-size='16' fill='#3F3C36'><text x='390' y='72' text-anchor='middle'>AI 工具</text><text x='390' y='95' text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>25.6%</text><text x='535.8' y='119.4' text-anchor='start'>大模型</text><text x='535.8' y='142.4' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>22%</text><text x='625.9' y='243.4' text-anchor='start'>数据分析</text><text x='625.9' y='266.4' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>15.9%</text><text x='625.9' y='396.6' text-anchor='start'>算法</text><text x='625.9' y='419.6' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>12.2%</text><text x='535.8' y='520.6' text-anchor='start'>Agent / 智能体</text><text x='535.8' y='543.6' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>13.4%</text><text x='390' y='568' text-anchor='middle'>视觉 / 图像</text><text x='390' y='591' text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>11%</text><text x='244.2' y='520.6' text-anchor='end'>AIGC</text><text x='244.2' y='543.6' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>9.8%</text><text x='154.1' y='396.6' text-anchor='end'>AI 产品</text><text x='154.1' y='419.6' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>7.3%</text><text x='154.1' y='243.4' text-anchor='end'>Python / 编程</text><text x='154.1' y='266.4' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>8.5%</text><text x='244.2' y='119.4' text-anchor='end'>数据标注</text><text x='244.2' y='142.4' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='22' fill='#B23A2B'>4.9%</text></g></svg></div></div>
+      <div>
+        <h4 style="margin:0 0 18px;font-family:var(--serif);font-weight:500;font-size:clamp(21px,2.2vw,28px);line-height:1.5;text-wrap:balance">市场要的是<span style="white-space:nowrap">「会用 AI 工具」</span>，不是<span style="white-space:nowrap">「会造 AI」</span></h4>
+        <p style="font-size:16px;line-height:1.9;color:var(--ink2);margin:0">应用类能力的出现率（AI 工具 <span class="nowrap">25.6%</span>、大模型 <span class="nowrap">22.0%</span>），是研发类能力（编程 <span class="nowrap">8.5%</span>、数据标注 <span class="nowrap">4.9%</span>）的两到五倍。</p>
+        <p style="font-size:16px;line-height:1.9;color:var(--ink2);margin:18px 0 0">换句话说，AI 门槛拦住的不是程序员，而是所有坐在电脑前的普通岗位。</p>
+      </div>
+    </div>
+    <p class="cap">要求 AI 技能的岗位中，各类能力要求的出现率。</p>
+
+    <div class="chart">
+      <div class="matrix"><svg viewBox='0 0 1264 460' width='1264' height='460' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-block' style='--d:0.05s'><rect class='hv' data-tip='公关 / 广告 / 品牌<br>占展示岗位 26.0%（251 条）<br>AI 硬门槛率 13.9%' x='2' y='2' width='764.2' height='192.7' fill='rgb(163,45,45)'/><text x='22' y='95.3' text-anchor='start' style='font-family:var(--sans)' font-size='16' fill='#FFFFFF'>公关 / 广告 / 品牌</text><text x='22' y='119.3' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='19' fill='#FFFFFF'>占 26.0% ｜ 门槛 13.9%</text></g><g class='a-block' style='--d:0.26s'><rect class='hv' data-tip='法律 / 合规<br>占展示岗位 16.8%（162 条）<br>AI 硬门槛率 13%' x='770.2' y='2' width='491.8' height='192.7' fill='rgb(167,54,54)'/><text x='790.2' y='95.3' text-anchor='start' style='font-family:var(--sans)' font-size='16' fill='#FFFFFF'>法律 / 合规</text><text x='790.2' y='119.3' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='19' fill='#FFFFFF'>占 16.8% ｜ 门槛 13%</text></g><g class='a-block' style='--d:0.05s'><rect class='hv' data-tip='运营 / 新媒体<br>占展示岗位 16.4%（158 条）<br>AI 硬门槛率 5.1%' x='2' y='198.7' width='442.8' height='208.9' fill='rgb(207,146,140)'/><text x='22' y='300.1' text-anchor='start' style='font-family:var(--sans)' font-size='16' fill='#3F3C36'>运营 / 新媒体</text><text x='22' y='324.1' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='19' fill='#3F3C36'>占 16.4% ｜ 门槛 5.1%</text></g><g class='a-block' style='--d:0.17s'><rect class='hv' data-tip='财务 / 会计<br>占展示岗位 15.6%（151 条）<br>AI 硬门槛率 1.3%' x='448.8' y='198.7' width='423' height='208.9' fill='rgb(233,204,194)'/><text x='468.8' y='300.1' text-anchor='start' style='font-family:var(--sans)' font-size='16' fill='#3F3C36'>财务 / 会计</text><text x='468.8' y='324.1' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='19' fill='#3F3C36'>占 15.6% ｜ 门槛 1.3%</text></g><g class='a-block' style='--d:0.29s'><rect class='hv' data-tip='销售 / BD<br>占展示岗位 14.3%（138 条）<br>AI 硬门槛率 2.2%' x='875.8' y='198.7' width='386.2' height='208.9' fill='rgb(226,188,179)'/><text x='895.8' y='300.1' text-anchor='start' style='font-family:var(--sans)' font-size='16' fill='#3F3C36'>销售 / BD</text><text x='895.8' y='324.1' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='19' fill='#3F3C36'>占 14.3% ｜ 门槛 2.2%</text></g><g class='a-block' style='--d:0.05s'><rect class='hv' data-tip='其他<br>占展示岗位 7.3%（71 条）<br>AI 硬门槛率 5.6%' x='2' y='411.6' width='842.4' height='46.5' fill='rgb(205,139,133)'/><text x='22' y='431.9' text-anchor='start' style='font-family:var(--sans)' font-size='16' fill='#3F3C36'>其他</text><text x='22' y='455.9' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='19' fill='#3F3C36'>占 7.3% ｜ 门槛 5.6%</text></g><g class='a-block' style='--d:0.28s'><rect class='hv' data-tip='设计 / 视觉<br>占展示岗位 1.9%（18 条）<br>AI 硬门槛率 11.1%' x='848.4' y='411.6' width='210.6' height='46.5' fill='rgb(176,75,73)'/><text x='953.7' y='431.9' text-anchor='middle' style='font-family:var(--sans)' font-size='15' fill='#FFFFFF'>设计 / 视觉</text><text x='953.7' y='455.9' text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='15' fill='#FFFFFF'>门槛 11.1%</text></g><g class='a-block' style='--d:0.34s'><rect class='hv' data-tip='人事 / 行政<br>占展示岗位 1.8%（17 条）<br>AI 硬门槛率 11.8%' x='1063' y='411.6' width='198.7' height='46.5' fill='rgb(173,67,66)'/><text x='1162.3' y='431.9' text-anchor='middle' style='font-family:var(--sans)' font-size='15' fill='#FFFFFF'>人事 / 行政</text><text x='1162.3' y='455.9' text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='15' fill='#FFFFFF'>门槛 11.8%</text></g></svg></div>
+    </div>
+    <aside class="rn r">
+      <div class="rn-rail"><span>读图</span></div>
+      <div class="rn-body">
+        <p class="rn-lead">招人最多的公关 / 广告 / 品牌，恰好也最要求 AI。</p>
+        <div class="rn-bottom">
+          <p class="rn-fn">方块面积＝该类岗位的数量占比，八个岗位族合计 <b>966</b> 条；颜色越深＝AI 硬门槛率越高。块小却颜色深的，是设计与人事。</p>
+          <div class="rn-pair">
+            <div class="rn-cell">
+              <span class="rn-nm">公关 / 广告 / 品牌</span>
+              <span class="rn-v"><b class="count" data-to="13.9" data-dec="1">13.9</b><i>% 硬门槛率</i></span>
+              <span class="rn-bar"><i class="fill" data-w="100"></i></span>
+              <span class="rn-d">岗位量占 26.0%，块最大、颜色最深</span>
+            </div>
+            <div class="rn-cell low">
+              <span class="rn-nm">财务 / 会计</span>
+              <span class="rn-v"><b class="count" data-to="1.3" data-dec="1">1.3</b><i>% 硬门槛率</i></span>
+              <span class="rn-bar"><i class="fill" data-w="9"></i></span>
+              <span class="rn-d">岗位量占 15.6%、排第四，几乎为零</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="chart">
+      <div class="bubble"><svg viewBox='0 0 1180 460' width='1180' height='460' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-fade' stroke='#E6E1D6' stroke-width='1'><line x1='300' y1='48' x2='300' y2='382'/><line x1='450' y1='48' x2='450' y2='382'/><line x1='600' y1='48' x2='600' y2='382'/><line x1='750' y1='48' x2='750' y2='382'/><line x1='900' y1='48' x2='900' y2='382'/><line x1='1050' y1='48' x2='1050' y2='382'/></g><g class='a-fade' style='--d:.08s' text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='18' fill='#8C8478'><text x='300' y='410'>0%</text><text x='450' y='410'>3%</text><text x='600' y='410'>6%</text><text x='750' y='410'>9%</text><text x='900' y='410'>12%</text><text x='1050' y='410'>15%</text></g><g class='hv' data-tip='公关 / 广告 / 品牌<br>严口径门槛率 13.9%（真的要求 AI）<br>宽口径门槛率 23.1%（提到 AI）<br>虚高 9.2 个百分点'><line class='a-wipe' style='--d:0.08s' x1='276' y1='78' x2='995' y2='78' stroke='#CFC7B8' stroke-width='2'/><circle class='a-pop' style='--d:0.28s' cx='995' cy='78' r='23.2' fill='#B23A2B' fill-opacity='0.85'/></g><text class='a-fade' style='--d:0.08s' x='264' y='84' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>公关 / 广告 / 品牌</text><text class='a-fade' style='--d:0.30s' x='1032.2' y='87' style='font-family:var(--num);font-weight:600' font-size='24' fill='#B23A2B'>13.9%</text><g class='hv' data-tip='法律 / 合规<br>严口径门槛率 13%（真的要求 AI）<br>宽口径门槛率 21%（提到 AI）<br>虚高 8 个百分点'><line class='a-wipe' style='--d:0.17s' x1='276' y1='132' x2='950' y2='132' stroke='#CFC7B8' stroke-width='2'/><circle class='a-pop' style='--d:0.36s' cx='950' cy='132' r='21.7' fill='#B23A2B' fill-opacity='0.85'/></g><text class='a-fade' style='--d:0.17s' x='264' y='138' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>法律 / 合规</text><text class='a-fade' style='--d:0.39s' x='985.7' y='141' style='font-family:var(--num);font-weight:600' font-size='24' fill='#B23A2B'>13%</text><g class='hv' data-tip='其他<br>严口径门槛率 5.6%（真的要求 AI）<br>宽口径门槛率 14.1%（提到 AI）<br>虚高 8.5 个百分点'><line class='a-wipe' style='--d:0.25s' x1='276' y1='186' x2='580' y2='186' stroke='#CFC7B8' stroke-width='2'/><circle class='a-pop' style='--d:0.45s' cx='580' cy='186' r='17' fill='#B23A2B' fill-opacity='0.85'/></g><text class='a-fade' style='--d:0.25s' x='264' y='192' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>其他</text><text class='a-fade' style='--d:0.47s' x='611' y='195' style='font-family:var(--num);font-weight:600' font-size='24' fill='#B23A2B'>5.6%</text><g class='hv' data-tip='运营 / 新媒体<br>严口径门槛率 5.1%（真的要求 AI）<br>宽口径门槛率 12.7%（提到 AI）<br>虚高 7.6 个百分点'><line class='a-wipe' style='--d:0.34s' x1='276' y1='240' x2='555' y2='240' stroke='#CFC7B8' stroke-width='2'/><circle class='a-pop' style='--d:0.54s' cx='555' cy='240' r='16' fill='#B23A2B' fill-opacity='0.85'/></g><text class='a-fade' style='--d:0.34s' x='264' y='246' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>运营 / 新媒体</text><text class='a-fade' style='--d:0.56s' x='585' y='249' style='font-family:var(--num);font-weight:600' font-size='24' fill='#B23A2B'>5.1%</text><g class='hv' data-tip='销售 / BD<br>严口径门槛率 2.2%（真的要求 AI）<br>宽口径门槛率 8%（提到 AI）<br>虚高 5.8 个百分点'><line class='a-wipe' style='--d:0.42s' x1='276' y1='294' x2='410' y2='294' stroke='#CFC7B8' stroke-width='2'/><circle class='a-pop' style='--d:0.62s' cx='410' cy='294' r='12.8' fill='#B23A2B' fill-opacity='0.85'/></g><text class='a-fade' style='--d:0.42s' x='264' y='300' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>销售 / BD</text><text class='a-fade' style='--d:0.64s' x='436.8' y='303' style='font-family:var(--num);font-weight:600' font-size='24' fill='#B23A2B'>2.2%</text><g class='hv' data-tip='财务 / 会计<br>严口径门槛率 1.3%（真的要求 AI）<br>宽口径门槛率 2.6%（提到 AI）<br>虚高 1.3 个百分点'><line class='a-wipe' style='--d:0.51s' x1='276' y1='348' x2='365' y2='348' stroke='#CFC7B8' stroke-width='2'/><circle class='a-pop' style='--d:0.71s' cx='365' cy='348' r='9.1' fill='#B23A2B' fill-opacity='0.85'/></g><text class='a-fade' style='--d:0.51s' x='264' y='354' text-anchor='end' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'>财务 / 会计</text><text class='a-fade' style='--d:0.72s' x='388.1' y='357' style='font-family:var(--num);font-weight:600' font-size='24' fill='#B23A2B'>1.3%</text><text x='264' y='34' text-anchor='end' style='font-family:var(--sans)' font-size='14' fill='#8C8478'>严口径门槛率</text></svg></div>
+    </div>
+    <aside class="rn r">
+      <div class="rn-rail"><span>读图</span></div>
+      <div class="rn-body">
+        <p class="rn-lead">两者之差，就是这个岗位族的门槛有多「虚」。</p>
+        <div class="rn-bottom">
+          <p class="rn-fn">横轴为严口径门槛率，即职位要求里真的写了 AI；圆点大小为宽口径门槛率，即招聘信息里提到 AI。</p>
+          <div class="rn-pair">
+            <div class="rn-cell">
+              <span class="rn-nm">公关 / 广告</span>
+              <span class="rn-v"><i class="pl">+</i><b class="count" data-to="9.2" data-dec="1">9.2</b><i>个百分点</i></span>
+              <span class="rn-bar"><i class="fill" data-w="100"></i></span>
+              <span class="rn-d">宽口径比严口径多出来的部分</span>
+            </div>
+            <div class="rn-cell low">
+              <span class="rn-nm">财务 / 会计</span>
+              <span class="rn-v"><i class="pl">+</i><b class="count" data-to="1.3" data-dec="1">1.3</b><i>个百分点</i></span>
+              <span class="rn-bar"><i class="fill" data-w="14"></i></span>
+              <span class="rn-d">两种口径几乎重合</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <p class="body" style="margin-top:34px">这也提示求职者，不应只问「会不会使用 AI」，还应关注自己能否把 AI 能力转化为更高价值的工作成果。招聘市场为相关能力提供的薪资回报，可能取决于它与具体业务任务的结合程度。</p>
+  </div>
+</section>
+
+<!-- ==================== PART 2 ==================== -->
+<section class="wrap">
+  <div class="part r r-flat"><span class="ghost" aria-hidden="true">02</span><span class="orn" aria-hidden="true"><svg viewBox='0 0 420 420' xmlns='http://www.w3.org/2000/svg' fill='none'><g stroke='#B23A2B'><circle cx='210' cy='210' r='198' stroke-opacity='.17' stroke-width='1'/><circle cx='210' cy='210' r='150' stroke-opacity='.13' stroke-width='1'/><circle cx='210' cy='210' r='102' stroke-opacity='.10' stroke-width='1'/><circle cx='210' cy='210' r='54' stroke-opacity='.07' stroke-width='1'/><path d='M210 12 A198 198 0 0 1 372.2 96.4' stroke-opacity='.34' stroke-width='2'/><path d='M210 60 A150 150 0 0 1 332.9 124' stroke-opacity='.28' stroke-width='2'/><path d='M210 108 A102 102 0 0 1 293.6 151.5' stroke-opacity='.22' stroke-width='2'/><path d='M210 156 A54 54 0 0 1 254.2 179' stroke-opacity='.20' stroke-width='2'/></g></svg></span>
+    <div class="part-head"><span class="k">第二部分</span><span class="m">02</span></div>
+    <h2>不断涌现的 AI 岗位，带给求职者新的机会</h2>
+    <p class="lede">把镜头拉近到 AI 岗位本身：五座城市用五种不同的方式招 AI 人，而同一个「AI 行业」内部，顶部与底部的薪资差了两倍。</p>
+  </div>
+
+  <!-- 05 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">05</span>
+    <div class="sub-head"><span class="no">05</span><h3>五城 AI 岗位月薪分布</h3></div>
+    <p class="body">城市之间的差距，并不完全体现在典型岗位的薪资水平上，也体现在高薪机会的分布上。样本中，五城 AI 岗位的整体月薪中位数为 <span class="nowrap">15,000</span> 元，均值为 <span class="nowrap">16,714</span> 元；均值高于中位数，说明高薪岗位对总体薪资水平形成了向上的拉动。</p>
+    <div class="bignums r">
+      <div class="bignum"><span class="v a count" data-to="15000" data-sep="1">15,000</span><span class="l">五城 AI 岗位<br>月薪中位数（元）</span></div>
+      <div class="bignum"><span class="v b count" data-to="16714" data-sep="1">16,714</span><span class="l">五城 AI 岗位<br>月薪均值（元）</span></div>
+    </div>
+    <div class="chart">
+      <div class="boxplot"><svg viewBox='0 0 1180 500' width='1180' height='500' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-fade' stroke='#E6E1D6' stroke-width='1'><line x1='110' y1='430' x2='1150' y2='430'/><line x1='110' y1='337.5' x2='1150' y2='337.5'/><line x1='110' y1='245' x2='1150' y2='245'/><line x1='110' y1='152.5' x2='1150' y2='152.5'/><line x1='110' y1='60' x2='1150' y2='60'/></g><g class='a-fade' style='--d:.06s' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='17' fill='#8C8478'><text x='96' y='436'>0K</text><text x='96' y='343.5'>20K</text><text x='96' y='251'>40K</text><text x='96' y='158.5'>60K</text><text x='96' y='66'>80K</text></g><g class='hv' data-tip='北京<br>最高 45,000 元 ｜ 75% 分位 19,000 元<br>中位数 15,000 元<br>25% 分位 10,000 元 ｜ 最低 2,000 元' stroke='#33414C'><line class='a-fade' style='--d:0.10s' x1='248' y1='221.9' x2='248' y2='342.1' stroke-width='2'/><line class='a-fade' style='--d:0.10s' x1='248' y1='383.8' x2='248' y2='420.8' stroke-width='2'/><line class='a-fade' style='--d:0.10s' x1='214' y1='221.9' x2='282' y2='221.9' stroke-width='3'/><line class='a-fade' style='--d:0.10s' x1='214' y1='420.8' x2='282' y2='420.8' stroke-width='3'/><rect class='a-rise' style='--d:0.20s' x='214' y='342.1' width='68' height='41.6' fill='#33414C' fill-opacity='0.10' stroke-width='2'/><line class='a-fade' style='--d:0.44s' x1='214' y1='360.6' x2='282' y2='360.6' stroke-width='3.5'/></g><text class='a-fade' style='--d:0.48s' x='248' y='465' text-anchor='middle' style='font-family:var(--sans)' font-size='18' fill='#3F3C36'>北京</text><text class='a-fade' style='--d:0.54s' x='294' y='367.6' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='20' fill='#33414C'>15</text><g class='hv' data-tip='上海<br>最高 60,000 元 ｜ 75% 分位 20,000 元<br>中位数 15,000 元<br>25% 分位 12,000 元 ｜ 最低 3,262 元' stroke='#6A8AA6'><line class='a-fade' style='--d:0.22s' x1='444' y1='152.5' x2='444' y2='337.5' stroke-width='2'/><line class='a-fade' style='--d:0.22s' x1='444' y1='374.5' x2='444' y2='414.9' stroke-width='2'/><line class='a-fade' style='--d:0.22s' x1='410' y1='152.5' x2='478' y2='152.5' stroke-width='3'/><line class='a-fade' style='--d:0.22s' x1='410' y1='414.9' x2='478' y2='414.9' stroke-width='3'/><rect class='a-rise' style='--d:0.32s' x='410' y='337.5' width='68' height='37' fill='#6A8AA6' fill-opacity='0.10' stroke-width='2'/><line class='a-fade' style='--d:0.56s' x1='410' y1='360.6' x2='478' y2='360.6' stroke-width='3.5'/></g><text class='a-fade' style='--d:0.60s' x='444' y='465' text-anchor='middle' style='font-family:var(--sans)' font-size='18' fill='#3F3C36'>上海</text><text class='a-fade' style='--d:0.66s' x='490' y='367.6' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='20' fill='#6A8AA6'>15</text><g class='hv' data-tip='深圳<br>最高 75,000 元 ｜ 75% 分位 24,000 元<br>中位数 15,000 元<br>25% 分位 10,000 元 ｜ 最低 3,001 元' stroke='#B23A2B'><line class='a-fade' style='--d:0.34s' x1='640' y1='83.1' x2='640' y2='319' stroke-width='2'/><line class='a-fade' style='--d:0.34s' x1='640' y1='383.8' x2='640' y2='416.1' stroke-width='2'/><line class='a-fade' style='--d:0.34s' x1='606' y1='83.1' x2='674' y2='83.1' stroke-width='3'/><line class='a-fade' style='--d:0.34s' x1='606' y1='416.1' x2='674' y2='416.1' stroke-width='3'/><rect class='a-rise' style='--d:0.44s' x='606' y='319' width='68' height='64.8' fill='#B23A2B' fill-opacity='0.10' stroke-width='2'/><line class='a-fade' style='--d:0.68s' x1='606' y1='360.6' x2='674' y2='360.6' stroke-width='3.5'/></g><text class='a-fade' style='--d:0.72s' x='640' y='465' text-anchor='middle' style='font-family:var(--sans)' font-size='18' fill='#3F3C36'>深圳</text><text class='a-fade' style='--d:0.78s' x='686' y='367.6' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='20' fill='#B23A2B'>15</text><g class='hv' data-tip='杭州<br>最高 80,000 元 ｜ 75% 分位 20,000 元<br>中位数 15,000 元<br>25% 分位 10,000 元 ｜ 最低 2,175 元' stroke='#4C7C68'><line class='a-fade' style='--d:0.46s' x1='836' y1='60' x2='836' y2='337.5' stroke-width='2'/><line class='a-fade' style='--d:0.46s' x1='836' y1='383.8' x2='836' y2='419.9' stroke-width='2'/><line class='a-fade' style='--d:0.46s' x1='802' y1='60' x2='870' y2='60' stroke-width='3'/><line class='a-fade' style='--d:0.46s' x1='802' y1='419.9' x2='870' y2='419.9' stroke-width='3'/><rect class='a-rise' style='--d:0.56s' x='802' y='337.5' width='68' height='46.2' fill='#4C7C68' fill-opacity='0.10' stroke-width='2'/><line class='a-fade' style='--d:0.80s' x1='802' y1='360.6' x2='870' y2='360.6' stroke-width='3.5'/></g><text class='a-fade' style='--d:0.84s' x='836' y='465' text-anchor='middle' style='font-family:var(--sans)' font-size='18' fill='#3F3C36'>杭州</text><text class='a-fade' style='--d:0.90s' x='882' y='367.6' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='20' fill='#4C7C68'>15</text><g class='hv' data-tip='广州<br>最高 50,000 元 ｜ 75% 分位 20,000 元<br>中位数 12,500 元<br>25% 分位 8,000 元 ｜ 最低 2,175 元' stroke='#C09244'><line class='a-fade' style='--d:0.58s' x1='1032' y1='198.8' x2='1032' y2='337.5' stroke-width='2'/><line class='a-fade' style='--d:0.58s' x1='1032' y1='393' x2='1032' y2='419.9' stroke-width='2'/><line class='a-fade' style='--d:0.58s' x1='998' y1='198.8' x2='1066' y2='198.8' stroke-width='3'/><line class='a-fade' style='--d:0.58s' x1='998' y1='419.9' x2='1066' y2='419.9' stroke-width='3'/><rect class='a-rise' style='--d:0.68s' x='998' y='337.5' width='68' height='55.5' fill='#C09244' fill-opacity='0.10' stroke-width='2'/><line class='a-fade' style='--d:0.92s' x1='998' y1='372.2' x2='1066' y2='372.2' stroke-width='3.5'/></g><text class='a-fade' style='--d:0.96s' x='1032' y='465' text-anchor='middle' style='font-family:var(--sans)' font-size='18' fill='#3F3C36'>广州</text><text class='a-fade' style='--d:1.02s' x='1078' y='379.2' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='20' fill='#C09244'>12.5</text><text x='96' y='34' text-anchor='end' style='font-family:var(--sans)' font-size='14' fill='#8C8478'>月薪（元）</text></svg></div>
+    </div>
+    <p class="cap">各城市 AI 岗位月薪分布（五数概括）。箱体为 25%–75% 分位区间，横线为中位数，须线两端为最小值与最大值；五城中位数四城相同、广州略低，真正拉开差距的是天花板。</p>
+    <p class="body" style="margin-top:34px">选择就业城市不仅是比较工资高低，也是在比较能够接触到什么层次的岗位，以及进入高薪岗位的机会有多大。</p>
+  </div>
+
+  <!-- 06 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">06</span>
+    <div class="sub-head"><span class="no">06</span><h3>五座城市，对于 AI 岗位的需求各不相同</h3></div>
+    <p class="body">五座城市的 AI 招聘市场并不是同一种模式的简单复制。岗位数量、学历要求、薪资水平和外包用工比例等指标共同构成了不同城市的就业结构，也意味着求职者面对的机会并不完全相同。</p>
+    <div class="chart">
+      <div class="parallel"><svg viewBox='0 0 1264 545' width='1264' height='545' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-fade' stroke='#DAD4C8' stroke-width='1'><line x1='130' y1='110' x2='130' y2='500'/><line x1='396' y1='110' x2='396' y2='500'/><line x1='662' y1='110' x2='662' y2='500'/><line x1='928' y1='110' x2='928' y2='500'/><line x1='1194' y1='110' x2='1194' y2='500'/></g><g class='a-fade' style='--d:.06s' text-anchor='middle' style='font-family:var(--sans)' font-size='15' fill='#6B6862'><text x='130' y='64'>岗位量占比</text><text x='396' y='64'>硕博岗位占比</text><text x='662' y='64'>月薪中位</text><text x='928' y='64'>月薪均值</text><text x='1194' y='64'>外包 / 人力占比</text></g><g class='a-fade' style='--d:.1s' text-anchor='middle' style='font-family:var(--num);font-weight:600' font-size='17'><text x='130' y='92' fill='#1A1A18'>31%</text><text x='130' y='526' fill='#8C8478'>0%</text><text x='396' y='92' fill='#1A1A18'>40%</text><text x='396' y='526' fill='#8C8478'>0%</text><text x='662' y='92' fill='#1A1A18'>17K</text><text x='662' y='526' fill='#8C8478'>10K</text><text x='928' y='92' fill='#1A1A18'>20K</text><text x='928' y='526' fill='#8C8478'>14K</text><text x='1194' y='92' fill='#1A1A18'>30%</text><text x='1194' y='526' fill='#8C8478'>0%</text></g><polyline class='cityline hv a-draw' style='--d:0.20s;--len:1131.9' data-city='北京' data-tip='北京<br>岗位量占比 26.7% ｜ 硕博岗位占比 29.6%<br>月薪中位 15,000 元 ｜ 月薪均值 15,405 元<br>外包 / 人力占比 10.7%' points='130,164.1 396,211.4 662,221.4 928,408.7 1194,360.9' fill='none' stroke='#33414C' stroke-width='2.5' stroke-linejoin='round'/><polyline class='cityline hv a-draw' style='--d:0.37s;--len:1174' data-city='上海' data-tip='上海<br>岗位量占比 17.8% ｜ 硕博岗位占比 16%<br>月薪中位 15,000 元 ｜ 月薪均值 16,815 元<br>外包 / 人力占比 28.3%' points='130,276.1 396,344 662,221.4 928,317 1194,132.1' fill='none' stroke='#6A8AA6' stroke-width='2.5' stroke-linejoin='round'/><polyline class='cityline hv a-draw' style='--d:0.54s;--len:1073.6' data-city='深圳' data-tip='深圳<br>岗位量占比 19.6% ｜ 硕博岗位占比 26.5%<br>月薪中位 15,000 元 ｜ 月薪均值 18,581 元<br>外包 / 人力占比 17.9%' points='130,253.4 396,241.6 662,221.4 928,202.2 1194,267.3' fill='none' stroke='#B23A2B' stroke-width='2.5' stroke-linejoin='round'/><polyline class='cityline hv a-draw' style='--d:0.71s;--len:1081.4' data-city='杭州' data-tip='杭州<br>岗位量占比 20.1% ｜ 硕博岗位占比 32.5%<br>月薪中位 15,000 元 ｜ 月薪均值 17,559 元<br>外包 / 人力占比 20.8%' points='130,247.1 396,183.1 662,221.4 928,268.7 1194,229.6' fill='none' stroke='#4C7C68' stroke-width='2.5' stroke-linejoin='round'/><polyline class='cityline hv a-draw' style='--d:0.88s;--len:1100.1' data-city='广州' data-tip='广州<br>岗位量占比 15.8% ｜ 硕博岗位占比 25.5%<br>月薪中位 12,500 元 ｜ 月薪均值 15,338 元<br>外包 / 人力占比 10.6%' points='130,301.2 396,251.4 662,360.7 928,413 1194,362.2' fill='none' stroke='#C09244' stroke-width='2.5' stroke-linejoin='round'/></svg></div>
+      <div class="legend">
+        <button data-city="北京"><i style="background:var(--c-bj)"></i>北京</button>
+        <button data-city="上海"><i style="background:var(--c-sh)"></i>上海</button>
+        <button data-city="深圳"><i style="background:var(--c-sz)"></i>深圳</button>
+        <button data-city="杭州"><i style="background:var(--c-hz)"></i>杭州</button>
+        <button data-city="广州"><i style="background:var(--c-gz)"></i>广州</button>
+      </div>
+    </div>
+    <div class="citycards">
+      <div class="cc"><div class="nm"><i style="background:var(--c-hz)"></i>杭州</div><p class="ds">学历门槛最高，硕博岗占 <span class="nowrap">32.5%</span>，薪资也不低，天花板五城最高。</p></div>
+      <div class="cc"><div class="nm"><i style="background:var(--c-sz)"></i>深圳</div><p class="ds">薪资均值最高，<span class="nowrap">18,581</span> 元，头部岗位拉动力最强。</p></div>
+      <div class="cc"><div class="nm"><i style="background:var(--c-sh)"></i>上海</div><p class="ds">学历最宽松（硕博岗 <span class="nowrap">16.0%</span>），但外包 / 人力占比最高，<span class="nowrap">28.3%</span>。</p></div>
+      <div class="cc"><div class="nm"><i style="background:var(--c-bj)"></i>北京</div><p class="ds">岗位数量最多，共 <span class="nowrap">159</span> 条，但薪资均值偏低（<span class="nowrap">15,405</span> 元）。</p></div>
+      <div class="cc"><div class="nm"><i style="background:var(--c-gz)"></i>广州</div><p class="ds">岗位数量最少，薪资也最低，几乎没有出现高天花板岗位。</p></div>
+    </div>
+    <p class="cap">横轴为五个维度，一条线代表一座城市，线越靠上表示该维度越高；点击图例可单独高亮某座城市。数据为五城 AI 相关岗位样本的统计口径。</p>
+    <p class="body" style="margin-top:34px">这些差异说明，城市竞争力不能仅靠单一指标判断。</p>
+    <p class="body" style="margin-top:18px">对于求职者来说，选择城市实际上是在不同条件之间做权衡：希望获得更高的薪资，需要关注岗位的薪资分布；希望进入研究或高技术含量岗位，需要关注学历与专业要求；希望获得相对稳定、直接的企业雇佣机会，则还需要进一步了解用工形式。</p>
+  </div>
+
+  <!-- 07 -->
+  <div class="sub r r-flat"><span class="ghost" aria-hidden="true">07</span>
+    <div class="sub-head"><span class="no">07</span><h3>同一个「AI 行业」，底部和顶部薪资差 2 倍</h3></div>
+    <p class="body">在 AI 相关岗位内部，职业类别之间存在明显的薪资分层。AI 相关岗位并不意味着统一的高薪回报：研发类岗位与数据标注、内容运营等岗位之间，可能存在不同的技能要求、工作复杂度和价值创造方式，企业愿意为哪些能力支付更高薪酬，也因此呈现出明显差异。</p>
+    <div class="row2 r70">
+      <div class="chart side"><div class="radial"><svg viewBox='0 0 800 660' width='800' height='660' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMidYMid meet'><g class='a-fade' fill='none' stroke='#E6E1D6' stroke-width='1'><circle cx='400' cy='330' r='78.8'/><circle cx='400' cy='330' r='127.5'/><circle cx='400' cy='330' r='176.2'/><circle cx='400' cy='330' r='225'/></g><g class='a-bloom' style='--d:0.10s'><path class='hv' data-tip='算法 / 模型研发 · 北京<br>85 条 ｜ 占本类型 27.9%<br>该类型占六类 58.3% ｜ 中位月薪 16,000 元' d='M 401 300 L 402.9 248.3 A 81.8 81.8 0 0 1 469.4 286.7 L 425.4 314.1 A 30 30 0 0 0 401 300 Z' fill='#33414C'/><path class='hv' data-tip='算法 / 模型研发 · 上海<br>50 条 ｜ 占本类型 16.4%<br>该类型占六类 58.3% ｜ 中位月薪 16,000 元' d='M 402.9 248.3 L 403.9 217.8 A 112.3 112.3 0 0 1 495.2 270.5 L 469.4 286.7 A 81.8 81.8 0 0 0 402.9 248.3 Z' fill='#6A8AA6'/><path class='hv' data-tip='算法 / 模型研发 · 深圳<br>48 条 ｜ 占本类型 15.7%<br>该类型占六类 58.3% ｜ 中位月薪 16,000 元' d='M 403.9 217.8 L 404.9 188.6 A 141.5 141.5 0 0 1 520 255 L 495.2 270.5 A 112.3 112.3 0 0 0 403.9 217.8 Z' fill='#B23A2B'/><path class='hv' data-tip='算法 / 模型研发 · 杭州<br>76 条 ｜ 占本类型 24.9%<br>该类型占六类 58.3% ｜ 中位月薪 16,000 元' d='M 404.9 188.6 L 406.6 142.3 A 187.8 187.8 0 0 1 559.3 230.5 L 520 255 A 141.5 141.5 0 0 0 404.9 188.6 Z' fill='#4C7C68'/><path class='hv' data-tip='算法 / 模型研发 · 广州<br>46 条 ｜ 占本类型 15.1%<br>该类型占六类 58.3% ｜ 中位月薪 16,000 元' d='M 406.6 142.3 L 407.5 114.3 A 215.9 215.9 0 0 1 583.1 215.6 L 559.3 230.5 A 187.8 187.8 0 0 0 406.6 142.3 Z' fill='#C09244'/></g><g class='a-bloom' style='--d:0.22s'><path class='hv' data-tip='智能体 / 应用开发 · 北京<br>30 条 ｜ 占本类型 23.1%<br>该类型占六类 24.9% ｜ 中位月薪 15,000 元' d='M 426.5 315.9 L 442.6 307.3 A 48.3 48.3 0 0 1 442.6 352.7 L 426.5 344.1 A 30 30 0 0 0 426.5 315.9 Z' fill='#33414C'/><path class='hv' data-tip='智能体 / 应用开发 · 上海<br>27 条 ｜ 占本类型 20.8%<br>该类型占六类 24.9% ｜ 中位月薪 15,000 元' d='M 442.6 307.3 L 457.2 299.6 A 64.7 64.7 0 0 1 457.2 360.4 L 442.6 352.7 A 48.3 48.3 0 0 0 442.6 307.3 Z' fill='#6A8AA6'/><path class='hv' data-tip='智能体 / 应用开发 · 深圳<br>29 条 ｜ 占本类型 22.3%<br>该类型占六类 24.9% ｜ 中位月薪 15,000 元' d='M 457.2 299.6 L 472.8 291.3 A 82.4 82.4 0 0 1 472.8 368.7 L 457.2 360.4 A 64.7 64.7 0 0 0 457.2 299.6 Z' fill='#B23A2B'/><path class='hv' data-tip='智能体 / 应用开发 · 杭州<br>19 条 ｜ 占本类型 14.6%<br>该类型占六类 24.9% ｜ 中位月薪 15,000 元' d='M 472.8 291.3 L 483 285.9 A 94 94 0 0 1 483 374.1 L 472.8 368.7 A 82.4 82.4 0 0 0 472.8 291.3 Z' fill='#4C7C68'/><path class='hv' data-tip='智能体 / 应用开发 · 广州<br>25 条 ｜ 占本类型 19.2%<br>该类型占六类 24.9% ｜ 中位月薪 15,000 元' d='M 483 285.9 L 496.4 278.7 A 109.2 109.2 0 0 1 496.4 381.3 L 483 374.1 A 94 94 0 0 0 483 285.9 Z' fill='#C09244'/></g><g class='a-bloom' style='--d:0.34s'><path class='hv' data-tip='产品 / 解决方案 · 北京<br>10 条 ｜ 占本类型 25.6%<br>该类型占六类 7.5% ｜ 中位月薪 15,000 元' d='M 425.4 345.9 L 430.6 349.1 A 36.1 36.1 0 0 1 401.3 366.1 L 401 360 A 30 30 0 0 0 425.4 345.9 Z' fill='#33414C'/><path class='hv' data-tip='产品 / 解决方案 · 上海<br>7 条 ｜ 占本类型 17.9%<br>该类型占六类 7.5% ｜ 中位月薪 15,000 元' d='M 430.6 349.1 L 434.2 351.4 A 40.4 40.4 0 0 1 401.4 370.3 L 401.3 366.1 A 36.1 36.1 0 0 0 430.6 349.1 Z' fill='#6A8AA6'/><path class='hv' data-tip='产品 / 解决方案 · 深圳<br>11 条 ｜ 占本类型 28.2%<br>该类型占六类 7.5% ｜ 中位月薪 15,000 元' d='M 434.2 351.4 L 439.9 354.9 A 47.1 47.1 0 0 1 401.6 377 L 401.4 370.3 A 40.4 40.4 0 0 0 434.2 351.4 Z' fill='#B23A2B'/><path class='hv' data-tip='产品 / 解决方案 · 杭州<br>6 条 ｜ 占本类型 15.4%<br>该类型占六类 7.5% ｜ 中位月薪 15,000 元' d='M 439.9 354.9 L 443 356.9 A 50.7 50.7 0 0 1 401.8 380.7 L 401.6 377 A 47.1 47.1 0 0 0 439.9 354.9 Z' fill='#4C7C68'/><path class='hv' data-tip='产品 / 解决方案 · 广州<br>5 条 ｜ 占本类型 12.8%<br>该类型占六类 7.5% ｜ 中位月薪 15,000 元' d='M 443 356.9 L 445.6 358.5 A 53.8 53.8 0 0 1 401.9 383.7 L 401.8 380.7 A 50.7 50.7 0 0 0 443 356.9 Z' fill='#C09244'/></g><g class='a-bloom' style='--d:0.46s'><path class='hv' data-tip='数据标注 / 评测 · 北京<br>4 条 ｜ 占本类型 44.4%<br>该类型占六类 1.7% ｜ 中位月薪 7,000 元' d='M 399 360 L 398.9 362.4 A 32.4 32.4 0 0 1 372.5 347.2 L 374.6 345.9 A 30 30 0 0 0 399 360 Z' fill='#33414C'/><path class='hv' data-tip='数据标注 / 评测 · 上海<br>1 条 ｜ 占本类型 11.1%<br>该类型占六类 1.7% ｜ 中位月薪 7,000 元' d='M 398.9 362.4 L 398.8 363 A 33 33 0 0 1 372 347.5 L 372.5 347.2 A 32.4 32.4 0 0 0 398.9 362.4 Z' fill='#6A8AA6'/><path class='hv' data-tip='数据标注 / 评测 · 深圳<br>2 条 ｜ 占本类型 22.2%<br>该类型占六类 1.7% ｜ 中位月薪 7,000 元' d='M 398.8 363 L 398.8 364.2 A 34.3 34.3 0 0 1 370.9 348.2 L 372 347.5 A 33 33 0 0 0 398.8 363 Z' fill='#B23A2B'/><path class='hv' data-tip='数据标注 / 评测 · 杭州<br>2 条 ｜ 占本类型 22.2%<br>该类型占六类 1.7% ｜ 中位月薪 7,000 元' d='M 398.8 364.2 L 398.8 365.5 A 35.5 35.5 0 0 1 369.9 348.8 L 370.9 348.2 A 34.3 34.3 0 0 0 398.8 364.2 Z' fill='#4C7C68'/></g><g class='a-bloom' style='--d:0.58s'><path class='hv' data-tip='运营 / 内容 · 北京<br>6 条 ｜ 占本类型 22.2%<br>该类型占六类 5.2% ｜ 中位月薪 8,000 元' d='M 373.5 344.1 L 370.3 345.8 A 33.7 33.7 0 0 1 370.3 314.2 L 373.5 315.9 A 30 30 0 0 0 373.5 344.1 Z' fill='#33414C'/><path class='hv' data-tip='运营 / 内容 · 上海<br>3 条 ｜ 占本类型 11.1%<br>该类型占六类 5.2% ｜ 中位月薪 8,000 元' d='M 370.3 345.8 L 368.7 346.7 A 35.5 35.5 0 0 1 368.7 313.3 L 370.3 314.2 A 33.7 33.7 0 0 0 370.3 345.8 Z' fill='#6A8AA6'/><path class='hv' data-tip='运营 / 内容 · 深圳<br>7 条 ｜ 占本类型 25.9%<br>该类型占六类 5.2% ｜ 中位月薪 8,000 元' d='M 368.7 346.7 L 364.9 348.7 A 39.8 39.8 0 0 1 364.9 311.3 L 368.7 313.3 A 35.5 35.5 0 0 0 368.7 346.7 Z' fill='#B23A2B'/><path class='hv' data-tip='运营 / 内容 · 杭州<br>6 条 ｜ 占本类型 22.2%<br>该类型占六类 5.2% ｜ 中位月薪 8,000 元' d='M 364.9 348.7 L 361.7 350.4 A 43.4 43.4 0 0 1 361.7 309.6 L 364.9 311.3 A 39.8 39.8 0 0 0 364.9 348.7 Z' fill='#4C7C68'/><path class='hv' data-tip='运营 / 内容 · 广州<br>5 条 ｜ 占本类型 18.5%<br>该类型占六类 5.2% ｜ 中位月薪 8,000 元' d='M 361.7 350.4 L 359 351.8 A 46.5 46.5 0 0 1 359 308.2 L 361.7 309.6 A 43.4 43.4 0 0 0 361.7 350.4 Z' fill='#C09244'/></g><g class='a-bloom' style='--d:0.70s'><path class='hv' data-tip='销售 / 商务 · 北京<br>5 条 ｜ 占本类型 38.5%<br>该类型占六类 2.5% ｜ 中位月薪 10,000 元' d='M 374.6 314.1 L 372 312.5 A 33 33 0 0 1 398.8 297 L 399 300 A 30 30 0 0 0 374.6 314.1 Z' fill='#33414C'/><path class='hv' data-tip='销售 / 商务 · 上海<br>3 条 ｜ 占本类型 23.1%<br>该类型占六类 2.5% ｜ 中位月薪 10,000 元' d='M 372 312.5 L 370.4 311.5 A 34.9 34.9 0 0 1 398.8 295.1 L 398.8 297 A 33 33 0 0 0 372 312.5 Z' fill='#6A8AA6'/><path class='hv' data-tip='销售 / 商务 · 深圳<br>2 条 ｜ 占本类型 15.4%<br>该类型占六类 2.5% ｜ 中位月薪 10,000 元' d='M 370.4 311.5 L 369.4 310.9 A 36.1 36.1 0 0 1 398.7 293.9 L 398.8 295.1 A 34.9 34.9 0 0 0 370.4 311.5 Z' fill='#B23A2B'/><path class='hv' data-tip='销售 / 商务 · 杭州<br>2 条 ｜ 占本类型 15.4%<br>该类型占六类 2.5% ｜ 中位月薪 10,000 元' d='M 369.4 310.9 L 368.4 310.2 A 37.3 37.3 0 0 1 398.7 292.7 L 398.7 293.9 A 36.1 36.1 0 0 0 369.4 310.9 Z' fill='#4C7C68'/><path class='hv' data-tip='销售 / 商务 · 广州<br>1 条 ｜ 占本类型 7.7%<br>该类型占六类 2.5% ｜ 中位月薪 10,000 元' d='M 368.4 310.2 L 367.8 309.9 A 37.9 37.9 0 0 1 398.7 292.1 L 398.7 292.7 A 37.3 37.3 0 0 0 368.4 310.2 Z' fill='#C09244'/></g><g class='a-fade' style='--d:.72s' style='font-family:var(--sans)' font-size='17' fill='#3F3C36'><text x='527' y='110' text-anchor='start'>算法 / 模型研发</text><text x='527' y='134' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='25' fill='#B23A2B'>占 58.3%</text><text x='527' y='155' text-anchor='start' font-size='14' fill='#8C8478'>中位 16k</text><text x='654' y='330' text-anchor='start'>智能体 / 应用开发</text><text x='654' y='354' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='25' fill='#B23A2B'>占 24.9%</text><text x='654' y='375' text-anchor='start' font-size='14' fill='#8C8478'>中位 15k</text><text x='527' y='550' text-anchor='start'>产品 / 解决方案</text><text x='527' y='574' text-anchor='start' style='font-family:var(--num);font-weight:600' font-size='25' fill='#B23A2B'>占 7.5%</text><text x='527' y='595' text-anchor='start' font-size='14' fill='#8C8478'>中位 15k</text><text x='273' y='550' text-anchor='end'>数据标注 / 评测</text><text x='273' y='574' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='25' fill='#B23A2B'>占 1.7%</text><text x='273' y='595' text-anchor='end' font-size='14' fill='#8C8478'>中位 7k</text><text x='146' y='330' text-anchor='end'>运营 / 内容</text><text x='146' y='354' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='25' fill='#B23A2B'>占 5.2%</text><text x='146' y='375' text-anchor='end' font-size='14' fill='#8C8478'>中位 8k</text><text x='273' y='110' text-anchor='end'>销售 / 商务</text><text x='273' y='134' text-anchor='end' style='font-family:var(--num);font-weight:600' font-size='25' fill='#B23A2B'>占 2.5%</text><text x='273' y='155' text-anchor='end' font-size='14' fill='#8C8478'>中位 10k</text></g></svg></div></div>
+      <div class="cmp">
+        <div class="item">
+          <div class="top"><span class="v">16K</span><span class="l">算法 / 模型研发 · 中位月薪</span></div>
+          <div class="track"><div class="fill" data-w="100"></div></div>
+        </div>
+        <div class="item">
+          <div class="top"><span class="v g">8K</span><span class="l">运营 / 内容 · 中位月薪</span></div>
+          <div class="track"><div class="fill g" data-w="50"></div></div>
+        </div>
+        <div class="item">
+          <div class="top"><span class="v g">7K</span><span class="l">数据标注 / 评测 · 中位月薪</span></div>
+          <div class="track"><div class="fill g" data-w="44"></div></div>
+        </div>
+        <p class="note">同一个行业名头之下，是两条几乎不相交的职业路径。</p>
+      </div>
+    </div>
+    <p class="cap">六个行业方向均分角度，半径长度＝该方向的岗位量（合计 <span class="nowrap">523</span> 条）；每个扇区内的色带由内向外依次为北京、上海、深圳、杭州、广州。悬停色带可看单城数据。</p>
+    <p class="body" style="margin-top:34px">这意味着选择进入 AI 相关领域，并不等于自动获得高薪。更重要的是判断自己准备进入哪一类岗位，需要具备什么能力，以及这些能力在招聘市场中对应怎样的薪资水平。AI 就业机会的增加与高薪机会的增加，并不是同一件事。</p>
+  </div>
+</section>
+
+<!-- ==================== 结尾 ==================== -->
+<section class="wrap">
+  <div class="ending r"><span class="orn" aria-hidden="true"><svg viewBox='0 0 420 420' xmlns='http://www.w3.org/2000/svg' fill='none'><g stroke='#B23A2B'><circle cx='210' cy='210' r='198' stroke-opacity='.17' stroke-width='1'/><circle cx='210' cy='210' r='150' stroke-opacity='.13' stroke-width='1'/><circle cx='210' cy='210' r='102' stroke-opacity='.10' stroke-width='1'/><circle cx='210' cy='210' r='54' stroke-opacity='.07' stroke-width='1'/><path d='M210 12 A198 198 0 0 1 372.2 96.4' stroke-opacity='.34' stroke-width='2'/><path d='M210 60 A150 150 0 0 1 332.9 124' stroke-opacity='.28' stroke-width='2'/><path d='M210 108 A102 102 0 0 1 293.6 151.5' stroke-opacity='.22' stroke-width='2'/><path d='M210 156 A54 54 0 0 1 254.2 179' stroke-opacity='.20' stroke-width='2'/></g></svg></span>
+    <p class="big">AI 正在改变就业市场，但这种改变并非同时发生在每一个行业、每一种职业和每一座城市。</p>
+    <p class="sml">招聘样本呈现出更复杂的图景：AI 技能在不同职业中的渗透程度并不一致；它与学历要求存在关联，但这种关联不能直接归因于 AI 本身；AI 相关岗位内部也存在明显的薪资分层，高薪机会并没有平均分布在所有职业之中。</p>
+    <p class="sml" style="margin-top:20px">对求职者而言，需要回答的问题不只是要不要学习 AI，而是：我的职业需要怎样的 AI 能力？这些能力是否已经成为招聘条件？它们又能否帮助我进入更有发展空间的岗位？</p>
+    <p class="sml" style="margin-top:20px">看清这些差异，或许比笼统地讨论 AI 将取代多少工作，更能帮助我们理解未来的就业机会。</p>
+    <div class="endmark"></div>
+  </div>
+  <div class="pagefoot">
+    <div class="rule"></div>
+    <div class="inner">
+      <div class="so"><b>数据来源</b>：智联招聘、BOSS 直聘两个平台的岗位招聘信息。<br><b>样本规模与时间区间</b>：采集 2024 年 1 月 1 日至 2026 年 10 月 1 日的岗位数据，共 1,583 条，覆盖北京、上海、深圳、杭州、广州等城市。<br><b>统计口径</b>：比例类指标为关键词在岗位文本中的提及率，薪资类指标为岗位标注月薪的中位数与均值；文内结论仅适用于该样本，不作全国招聘市场的全量推断。</div>
+      <div class="tg">数据专题 · 2026</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- 顶部阅读进度 ---------- */
+  var prog = document.getElementById('prog');
+  function onScroll(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var p = max > 0 ? (h.scrollTop || document.body.scrollTop) / max : 0;
+    prog.style.width = (p * 100).toFixed(2) + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  /* ---------- 数字增长 ---------- */
+  function fmtNum(v, dec, sep, suf){
+    if (sep) return Math.round(v).toLocaleString('en-US') + suf;
+    return v.toFixed(dec) + suf;
+  }
+  function countUp(el){
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    var to   = parseFloat(el.dataset.to) || 0;
+    var suf  = el.dataset.suffix || '';
+    var dec  = parseInt(el.dataset.dec || '0', 10);
+    var sep  = el.dataset.sep === '1';
+    if (reduce){ el.textContent = fmtNum(to, dec, sep, suf); return; }
+    var dur = 760, t0 = null;
+    function step(t){
+      if (t0 === null) t0 = t;
+      var p = Math.min(1, (t - t0) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmtNum(to * e, dec, sep, suf);
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = fmtNum(to, dec, sep, suf);
+    }
+    el.textContent = fmtNum(0, dec, sep, suf);
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- 比例条增长 ---------- */
+  function grow(el){
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    el.style.width = (el.getAttribute('data-w') || '0') + '%';
+  }
+
+  /* ---------- 章节级：进出场（滚回时重播） ---------- */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      var el = en.target;
+      if (en.isIntersecting){
+        if (el.classList.contains('in')) return;
+        el.classList.add('in');
+        el.querySelectorAll('.count').forEach(countUp);
+        el.querySelectorAll('.fill').forEach(grow);
+      } else {
+        if (!el.classList.contains('in')) return;
+        el.classList.remove('in');
+        if (reduce) return;
+        el.querySelectorAll('.count').forEach(function(c){ delete c.dataset.done; });
+        el.querySelectorAll('.fill').forEach(function(f){
+          delete f.dataset.done;
+          f.style.width = '0';
+        });
+      }
+    });
+  }, {rootMargin:'0px 0px -7% 0px', threshold:0});
+
+  document.querySelectorAll('.r').forEach(function(el){ io.observe(el); });
+  document.querySelectorAll('.count, .fill').forEach(function(el){
+    if (!el.closest('.r')){ countUp(el); grow(el); }
+  });
+
+  /* ---------- 图表级：每张图各自进场 / 退场 ----------
+     之前动画挂在「整节」上，节的上边缘一进视口就触发，
+     等滚到图表时早就播完了 —— 所以看起来「有的图表没有动效」。
+     现在改成以图表自身为单位：露出约 1/5 才播入场，几乎完全离开才播退场。 */
+  var charts = Array.prototype.slice.call(document.querySelectorAll('.chart'));
+
+  function showChart(el){ el.classList.remove('out'); el.classList.add('in'); }
+  function hideChart(el){ el.classList.remove('in'); el.classList.add('out'); }
+
+  if (!('IntersectionObserver' in window)){
+    charts.forEach(showChart);                       // 老浏览器：直接呈现终态
+  } else {
+    var cio = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        var el = en.target, r = en.intersectionRatio;
+        if (r >= 0.18){
+          if (el.classList.contains('in')) return;
+          showChart(el);
+        } else if (r <= 0.02){
+          if (!el.classList.contains('in')) return;
+          hideChart(el);
+        }
+      });
+    }, {rootMargin:'0px 0px -8% 0px', threshold:[0, 0.02, 0.18, 0.35, 0.55, 0.75, 1]});
+    charts.forEach(function(c){ cio.observe(c); });
+  }
+
+  /* ---------- 悬浮提示 ---------- */
+  var tip = document.getElementById('tip');
+  function moveTip(e){
+    var pad = 16, w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = e.clientX + pad, y = e.clientY + pad;
+    if (x + w > window.innerWidth - 12) x = e.clientX - w - pad;
+    if (y + h > window.innerHeight - 12) y = e.clientY - h - pad;
+    tip.style.left = Math.max(8, x) + 'px';
+    tip.style.top  = Math.max(8, y) + 'px';
+  }
+  function showTip(e){
+    var t = e.currentTarget.getAttribute('data-tip');
+    if (!t) return;
+    tip.innerHTML = t;
+    tip.classList.add('on');
+    moveTip(e);
+  }
+  function hideTip(){ tip.classList.remove('on'); }
+  document.querySelectorAll('[data-tip]').forEach(function(el){
+    el.addEventListener('mouseenter', showTip);
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', hideTip);
+    el.addEventListener('touchstart', function(ev){
+      var t = ev.touches[0];
+      tip.innerHTML = el.getAttribute('data-tip');
+      tip.classList.add('on');
+      moveTip({clientX:t.clientX, clientY:t.clientY});
+      setTimeout(hideTip, 2200);
+    }, {passive:true});
+  });
+
+  /* ---------- 五城高亮 ---------- */
+  document.querySelectorAll('.legend button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var wrap = btn.closest('.chart');
+      var city = btn.getAttribute('data-city');
+      var lines = wrap.querySelectorAll('.cityline');
+      var already = btn.classList.contains('on');
+      document.querySelectorAll('.legend button').forEach(function(b){ if (b !== btn) b.classList.remove('on'); });
+      if (already){
+        btn.classList.remove('on');
+        wrap.classList.remove('focused');
+        lines.forEach(function(l){ l.classList.remove('active'); });
+        return;
+      }
+      btn.classList.add('on');
+      wrap.classList.add('focused');
+      lines.forEach(function(l){ l.classList.toggle('active', l.getAttribute('data-city') === city); });
+    });
+  });
+})();
+
+</script>
+</body>
+</html>
